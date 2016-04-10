@@ -1,11 +1,20 @@
 #include <stdlib.h>
+#include <stdio.h>
+#include <pthread.h>
 #include "worker.h"
 #include "util/aqueue.h"
 
 struct worker_pipe *worker_pipe_new() {
 	struct worker_pipe *pipe = calloc(1, sizeof(struct worker_pipe));
+	if (!pipe) return NULL;
 	pipe->messages = aqueue_new();
 	pipe->actions = aqueue_new();
+	if (!pipe->messages || !pipe->actions) {
+		aqueue_free(pipe->messages);
+		aqueue_free(pipe->actions);
+		free(pipe);
+		return NULL;
+	}
 	return pipe;
 }
 
@@ -36,6 +45,11 @@ void worker_post_message(struct worker_pipe *pipe,
 		struct worker_message *in_response_to,
 		void *data) {
 	struct worker_message *message = calloc(1, sizeof(struct worker_message));
+	if (!message) {
+		fprintf(stderr, "Unable to allocate messages, aborting worker thread");
+		pthread_exit(NULL);
+		return;
+	}
 	message->type = type;
 	message->in_response_to = in_response_to;
 	message->data = data;

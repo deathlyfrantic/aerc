@@ -11,6 +11,7 @@ enum worker_message_type {
     /* Basics */
     WORKER_ACK,
     WORKER_END,
+    WORKER_OOM,
     WORKER_UNSUPPORTED,
     /* Connection */
     WORKER_CONNECT,

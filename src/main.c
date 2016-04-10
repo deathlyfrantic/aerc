@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <signal.h>
 #include <time.h>
+#include <errno.h>
 #include "worker.h"
 #include "imap/worker.h"
 
@@ -22,6 +24,11 @@ int main(int argc, char **argv) {
 
 		struct timespec spec = { 0, 2.5e+8 };
 		nanosleep(&spec, NULL);
+
+		if (pthread_kill(worker, 0) == ESRCH) {
+			fprintf(stderr, "Worker thread died! Exiting aerc.\n");
+			break;
+		}
 	}
 	return 0;
 }
