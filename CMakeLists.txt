@@ -13,7 +13,7 @@ include_directories("${PROJECT_SOURCE_DIR}/include")
 
 find_package(OpenSSL)
 if(OPENSSL_FOUND)
-    add_definitions(-DOPENSSL)
+    add_definitions(-DUSE_OPENSSL)
 endif()
 
 FILE(GLOB src ${PROJECT_SOURCE_DIR}/src/*.c)

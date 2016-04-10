@@ -10,9 +10,14 @@
 #include <stdbool.h>
 #include "imap/imap.h"
 #include "worker.h"
+#include "log.h"
 
 bool imap_connect(struct imap_connection *imap, const char *host,
 		const char *port, bool use_ssl) {
+	if (use_ssl) {
+		worker_log(L_ERROR, "TODO: SSL");
+		return false;
+	}
 	struct addrinfo hints;
 
 	memset(&hints, 0, sizeof(struct addrinfo));
@@ -24,7 +29,7 @@ bool imap_connect(struct imap_connection *imap, const char *host,
 	struct addrinfo *result, *rp;
 	int s;
 	if ((s = getaddrinfo(host, port, &hints, &result))) {
-		//worker_log(L_ERROR, "Connection failed: %s", gai_strerror(s));
+		worker_log(L_ERROR, "Connection failed: %s", gai_strerror(s));
 		return false;
 	}
 	int err = -1;
@@ -42,7 +47,7 @@ bool imap_connect(struct imap_connection *imap, const char *host,
 	}
 	if (rp == NULL) {
 		freeaddrinfo(result);
-		//worker_log(L_ERROR, "Connection failed: %s", strerror(err));
+		worker_log(L_ERROR, "Connection failed: %s", strerror(err));
 		return false;
 	}
 	freeaddrinfo(result);

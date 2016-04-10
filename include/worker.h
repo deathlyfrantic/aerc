@@ -39,11 +39,6 @@ struct worker_message {
     void *data;
 };
 
-/* Connection structs */
-struct worker_connect_info {
-    const char *connection_string;
-};
-
 /* Misc */
 struct worker_pipe *worker_pipe_new();
 void worker_pipe_free(struct worker_pipe *pipe);

@@ -6,6 +6,7 @@
 #include "worker.h"
 #include "urlparse.h"
 #include "imap/imap.h"
+#include "log.h"
 
 void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 	struct imap_connection *imap = pipe->data;
@@ -13,11 +14,10 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 	case WORKER_CONNECT:
 	{
 		worker_post_message(pipe, WORKER_ACK, message, NULL);
-		struct worker_connect_info *info = message->data;
 		struct uri uri;
-		if (!parse_uri(&uri, info->connection_string)) {
-			//worker_log(L_ERROR, "Invalid connection string '%s'",
-			//	info->connection_string);
+		if (!parse_uri(&uri, (char *)message->data)) {
+			worker_log(L_ERROR, "Invalid connection string '%s'",
+				(char*)message->data);
 		}
 		bool ssl = false;
 		if (strcmp(uri.scheme, "imap") == 0) {
@@ -25,13 +25,13 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 		} else if (strcmp(uri.scheme, "imaps") == 0) {
 			ssl = true;
 		} else {
-			//worker_log(L_ERROR, "Unsupported protocol '%s'",
-			//	uri->scheme);
+			worker_log(L_ERROR, "Unsupported protocol '%s'", uri.scheme);
 			break;
 		}
 		if (!uri.port) {
 			uri.port = strdup(ssl ? "993" : "143");
 		}
+		worker_log(L_INFO, "Connecting to IMAP server");
 		bool res = imap_connect(imap, uri.hostname, uri.port, ssl);
 		if (res) {
 			worker_post_message(pipe, WORKER_CONNECT_DONE, message, NULL);
@@ -39,7 +39,7 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 			worker_post_message(pipe, WORKER_CONNECT_ERROR, message, NULL);
 		}
 		uri_free(&uri);
-		free(info);
+		worker_log(L_INFO, "Connected to IMAP server");
 		break;
 	}
 	default:
