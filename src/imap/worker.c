@@ -31,15 +31,16 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 		if (!uri.port) {
 			uri.port = strdup(ssl ? "993" : "143");
 		}
-		worker_log(L_INFO, "Connecting to IMAP server");
+		worker_log(L_DEBUG, "Connecting to IMAP server");
 		bool res = imap_connect(imap, uri.hostname, uri.port, ssl);
 		if (res) {
+			worker_log(L_INFO, "Connected to IMAP server");
 			worker_post_message(pipe, WORKER_CONNECT_DONE, message, NULL);
 		} else {
+			worker_log(L_DEBUG, "Error connecting to IMAP server");
 			worker_post_message(pipe, WORKER_CONNECT_ERROR, message, NULL);
 		}
 		uri_free(&uri);
-		worker_log(L_INFO, "Connected to IMAP server");
 		break;
 	}
 	default:
