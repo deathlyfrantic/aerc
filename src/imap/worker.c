@@ -5,9 +5,6 @@
 
 void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 	switch (message->type) {
-	case WORKER_PING:
-		worker_post_message(pipe, WORKER_ACK, message, NULL);
-		break;
 	default:
 		worker_post_message(pipe, WORKER_UNSUPPORTED, message, NULL);
 		break;

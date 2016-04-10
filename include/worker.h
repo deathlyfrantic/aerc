@@ -9,7 +9,6 @@
 
 enum worker_message_type {
     /* Basics */
-    WORKER_PING,
     WORKER_ACK,
     WORKER_END,
     WORKER_UNSUPPORTED,

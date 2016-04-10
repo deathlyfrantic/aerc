@@ -13,8 +13,6 @@ int main(int argc, char **argv) {
 	pthread_t worker;
 	pthread_create(&worker, NULL, imap_worker, worker_pipe);
 
-	worker_post_action(worker_pipe, WORKER_PING, NULL, NULL);
-
 	while (1) {
 		struct worker_message *msg;
 		if (worker_get_message(worker_pipe, &msg)) {
