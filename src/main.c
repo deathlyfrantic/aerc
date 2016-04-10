@@ -4,10 +4,12 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <signal.h>
+#include <string.h>
 #include <time.h>
 #include <errno.h>
 #include "worker.h"
 #include "imap/worker.h"
+#include "urlparse.h"
 
 void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg) {
 	switch (msg->type) {
@@ -31,7 +33,12 @@ int main(int argc, char **argv) {
 
 	struct worker_connect_info *info = calloc(1,
 			sizeof(struct worker_connect_info));
-	info->connection_string = "imaps://mail.cmpwn.com:143";
+	// TODO: configuration
+	info->connection_string = getenv("CS");
+	if (!info->connection_string || strlen(info->connection_string) == 0) {
+		fprintf(stderr, "Usage: CS='connection string' %s\n", argv[0]);
+		exit(1);
+	}
 	worker_post_action(worker_pipe, WORKER_CONNECT, NULL, info);
 
 	while (1) {

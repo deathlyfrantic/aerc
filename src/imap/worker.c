@@ -2,7 +2,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
+#include <string.h>
 #include "worker.h"
+#include "urlparse.h"
 #include "imap/imap.h"
 
 void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
@@ -12,12 +14,31 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 	{
 		worker_post_message(pipe, WORKER_ACK, message, NULL);
 		struct worker_connect_info *info = message->data;
-		bool res = imap_connect(imap, "mail.cmpwn.com", "143", false);
+		struct uri uri;
+		if (!parse_uri(&uri, info->connection_string)) {
+			//worker_log(L_ERROR, "Invalid connection string '%s'",
+			//	info->connection_string);
+		}
+		bool ssl = false;
+		if (strcmp(uri.scheme, "imap") == 0) {
+			ssl = false;
+		} else if (strcmp(uri.scheme, "imaps") == 0) {
+			ssl = true;
+		} else {
+			//worker_log(L_ERROR, "Unsupported protocol '%s'",
+			//	uri->scheme);
+			break;
+		}
+		if (!uri.port) {
+			uri.port = strdup(ssl ? "993" : "143");
+		}
+		bool res = imap_connect(imap, uri.hostname, uri.port, ssl);
 		if (res) {
 			worker_post_message(pipe, WORKER_CONNECT_DONE, message, NULL);
 		} else {
 			worker_post_message(pipe, WORKER_CONNECT_ERROR, message, NULL);
 		}
+		uri_free(&uri);
 		free(info);
 		break;
 	}
