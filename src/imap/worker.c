@@ -65,8 +65,9 @@ void *imap_worker(void *_pipe) {
 			}
 			worker_message_free(message);
 		}
+		imap_receive(imap);
 
-		struct timespec spec = { 0, 2.5e+8 };
+		struct timespec spec = { 0, .5e+8 };
 		nanosleep(&spec, NULL);
 	}
 	return NULL;

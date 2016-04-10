@@ -8,12 +8,46 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
+#include <poll.h>
 #include "imap/imap.h"
 #include "worker.h"
 #include "log.h"
+#define BUFFER_SIZE 1024
+
+void imap_receive(struct imap_connection *imap) {
+	poll(imap->poll, 1, -1);
+	if (imap->poll[0].revents & POLLIN) {
+		if (imap->mode == RECV_LINE) {
+			ssize_t amt = recv(imap->sockfd, imap->line + imap->line_index,
+					imap->line_size - imap->line_index, 0);
+			imap->line_index += amt;
+			if (imap->line_index == imap->line_size) {
+				imap->line = realloc(imap->line,
+						imap->line_size + BUFFER_SIZE + 1);
+				memset(imap->line + imap->line_index + 1, 0,
+						(imap->line_size - imap->line_index + 1));
+				imap->line_size = imap->line_size + BUFFER_SIZE;
+			}
+			char *esc;
+			while ((esc = strstr(imap->line, "\r\n"))) {
+				*esc = '\0';
+				worker_log(L_DEBUG, "[IMAP] %s", imap->line);
+				memmove(imap->line, esc + 2, imap->line_size - (esc - imap->line + 2));
+			}
+		}
+	}
+}
+
+void imap_init(struct imap_connection *imap) {
+	imap->mode = RECV_LINE;
+	imap->line = calloc(1, BUFFER_SIZE + 1);
+	imap->line_index = 0;
+	imap->line_size = BUFFER_SIZE;
+}
 
 bool imap_connect(struct imap_connection *imap, const char *host,
 		const char *port, bool use_ssl) {
+	imap_init(imap);
 	if (use_ssl) {
 		worker_log(L_ERROR, "TODO: SSL");
 		return false;
@@ -40,9 +74,9 @@ bool imap_connect(struct imap_connection *imap, const char *host,
 			continue;
 		}
 		if (connect(imap->sockfd, rp->ai_addr, rp->ai_addrlen) != -1) {
-			err = errno;
 			break;
 		}
+		err = errno;
 		close(imap->sockfd);
 	}
 	if (rp == NULL) {
@@ -51,5 +85,7 @@ bool imap_connect(struct imap_connection *imap, const char *host,
 		return false;
 	}
 	freeaddrinfo(result);
+	imap->poll[0].fd = imap->sockfd;
+	imap->poll[0].events = POLLIN;
 	return true;
 }
