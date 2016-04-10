@@ -24,23 +24,27 @@ void worker_pipe_free(struct worker_pipe *pipe) {
 	free(pipe);
 }
 
-bool worker_get_message(struct worker_pipe *pipe,
+static bool _worker_get(aqueue_t *queue,
 		struct worker_message **message) {
 	void *msg;
-	if (aqueue_dequeue(pipe->messages, &msg)) {
+	if (aqueue_dequeue(queue, &msg)) {
 		*message = (struct worker_message *)msg;
 		return true;
 	}
 	return false;
 }
 
-bool worker_get_action(struct worker_pipe *pipe,
+bool worker_get_message(struct worker_pipe *pipe,
 		struct worker_message **message) {
-	// Only semantically different
-	return worker_get_message(pipe, message);
+	return _worker_get(pipe->messages, message);
 }
 
-void worker_post_message(struct worker_pipe *pipe,
+bool worker_get_action(struct worker_pipe *pipe,
+		struct worker_message **message) {
+	return _worker_get(pipe->actions, message);
+}
+
+void _worker_post(aqueue_t *queue,
 		enum worker_message_type type,
 		struct worker_message *in_response_to,
 		void *data) {
@@ -53,15 +57,21 @@ void worker_post_message(struct worker_pipe *pipe,
 	message->type = type;
 	message->in_response_to = in_response_to;
 	message->data = data;
-	aqueue_enqueue(pipe->messages, message);
+	aqueue_enqueue(queue, message);
+}
+
+void worker_post_message(struct worker_pipe *pipe,
+		enum worker_message_type type,
+		struct worker_message *in_response_to,
+		void *data) {
+	_worker_post(pipe->messages, type, in_response_to, data);
 }
 
 void worker_post_action(struct worker_pipe *pipe,
 		enum worker_message_type type,
 		struct worker_message *in_response_to,
 		void *data) {
-	// Only semantically different
-	worker_post_message(pipe, type, in_response_to, data);
+	_worker_post(pipe->actions, type, in_response_to, data);
 }
 
 void worker_message_free(struct worker_message *msg) {

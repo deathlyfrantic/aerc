@@ -1,10 +1,14 @@
 #ifndef _IMAP_H
 #define _IMAP_H
 
+#include <stdbool.h>
+#include "worker.h"
+
 struct imap_connection {
     int sockfd;
 };
 
-int imap_connect(struct imap_connection *imap, const char *addr, int port);
+bool imap_connect(struct imap_connection *imap, const char *host,
+        const char *port, bool use_ssl);
 
 #endif
