@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include "absocket.h"
 #include "worker.h"
 #include "imap/worker.h"
 #include "log.h"
@@ -27,6 +28,7 @@ void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg)
 
 int main(int argc, char **argv) {
 	init_log(L_DEBUG); // TODO: Customizable
+	abs_init();
 	struct worker_pipe *worker_pipe = worker_pipe_new();
 
 	pthread_t worker;
