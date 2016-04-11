@@ -18,7 +18,7 @@ void imap_receive(struct imap_connection *imap) {
 	poll(imap->poll, 1, -1);
 	if (imap->poll[0].revents & POLLIN) {
 		if (imap->mode == RECV_LINE) {
-			ssize_t amt = recv(imap->sockfd, imap->line + imap->line_index,
+			ssize_t amt = ab_recv(imap->socket, imap->line + imap->line_index,
 					imap->line_size - imap->line_index, 0);
 			imap->line_index += amt;
 			if (imap->line_index == imap->line_size) {
@@ -52,40 +52,8 @@ bool imap_connect(struct imap_connection *imap, const char *host,
 		worker_log(L_ERROR, "TODO: SSL");
 		return false;
 	}
-	struct addrinfo hints;
-
-	memset(&hints, 0, sizeof(struct addrinfo));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = 0;
-	hints.ai_protocol = 0;
-
-	struct addrinfo *result, *rp;
-	int s;
-	if ((s = getaddrinfo(host, port, &hints, &result))) {
-		worker_log(L_ERROR, "Connection failed: %s", gai_strerror(s));
-		return false;
-	}
-	int err = -1;
-	for (rp = result; rp != NULL; rp = rp->ai_next) {
-		imap->sockfd = socket(rp->ai_family, rp->ai_socktype,
-				rp->ai_protocol);
-		if (imap->sockfd == -1) {
-			continue;
-		}
-		if (connect(imap->sockfd, rp->ai_addr, rp->ai_addrlen) != -1) {
-			break;
-		}
-		err = errno;
-		close(imap->sockfd);
-	}
-	if (rp == NULL) {
-		freeaddrinfo(result);
-		worker_log(L_ERROR, "Connection failed: %s", strerror(err));
-		return false;
-	}
-	freeaddrinfo(result);
-	imap->poll[0].fd = imap->sockfd;
+	imap->socket = absocket_new(host, port, use_ssl);
+	imap->poll[0].fd = imap->socket->basefd;
 	imap->poll[0].events = POLLIN;
 	return true;
 }

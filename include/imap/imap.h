@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <poll.h>
+#include "absocket.h"
 #include "worker.h"
 
 enum recv_mode {
@@ -11,7 +12,7 @@ enum recv_mode {
 };
 
 struct imap_connection {
-    int sockfd;
+    absocket_t *socket;
     enum recv_mode mode;
     char *line;
     int line_index, line_size;
