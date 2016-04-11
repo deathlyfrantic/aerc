@@ -8,45 +8,55 @@
 #include "imap/imap.h"
 #include "log.h"
 
-void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
+void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *message) {
 	struct imap_connection *imap = pipe->data;
-	switch (message->type) {
-	case WORKER_CONNECT:
-	{
-		worker_post_message(pipe, WORKER_ACK, message, NULL);
-		struct uri uri;
-		if (!parse_uri(&uri, (char *)message->data)) {
-			worker_log(L_ERROR, "Invalid connection string '%s'",
-				(char*)message->data);
-		}
-		bool ssl = false;
-		if (strcmp(uri.scheme, "imap") == 0) {
-			ssl = false;
-		} else if (strcmp(uri.scheme, "imaps") == 0) {
-			ssl = true;
-		} else {
-			worker_log(L_ERROR, "Unsupported protocol '%s'", uri.scheme);
-			break;
-		}
-		if (!uri.port) {
-			uri.port = strdup(ssl ? "993" : "143");
-		}
-		worker_log(L_DEBUG, "Connecting to IMAP server");
-		bool res = imap_connect(imap, uri.hostname, uri.port, ssl);
-		if (res) {
-			worker_log(L_INFO, "Connected to IMAP server");
-			worker_post_message(pipe, WORKER_CONNECT_DONE, message, NULL);
-		} else {
-			worker_log(L_DEBUG, "Error connecting to IMAP server");
-			worker_post_message(pipe, WORKER_CONNECT_ERROR, message, NULL);
-		}
-		uri_free(&uri);
-		break;
+	worker_post_message(pipe, WORKER_ACK, message, NULL);
+	struct uri uri;
+	if (!parse_uri(&uri, (char *)message->data)) {
+		worker_log(L_ERROR, "Invalid connection string '%s'",
+			(char*)message->data);
 	}
-	default:
-		worker_post_message(pipe, WORKER_UNSUPPORTED, message, NULL);
-		break;
+	bool ssl = false;
+	if (strcmp(uri.scheme, "imap") == 0) {
+		ssl = false;
+	} else if (strcmp(uri.scheme, "imaps") == 0) {
+		ssl = true;
+	} else {
+		worker_log(L_ERROR, "Unsupported protocol '%s'", uri.scheme);
+		return;
 	}
+	if (!uri.port) {
+		uri.port = strdup(ssl ? "993" : "143");
+	}
+	worker_log(L_DEBUG, "Connecting to IMAP server");
+	bool res = imap_connect(imap, uri.hostname, uri.port, ssl);
+	if (res) {
+		worker_log(L_INFO, "Connected to IMAP server");
+		worker_post_message(pipe, WORKER_CONNECT_DONE, message, NULL);
+	} else {
+		worker_log(L_DEBUG, "Error connecting to IMAP server");
+		worker_post_message(pipe, WORKER_CONNECT_ERROR, message, NULL);
+	}
+	uri_free(&uri);
+	return;
+}
+
+struct action_handler {
+	enum worker_message_type action;
+	void (*handler)(struct worker_pipe *pipe, struct worker_message *message);
+};
+struct action_handler handlers[] = {
+	{ WORKER_CONNECT, handle_worker_connect }
+};
+
+void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
+	for (size_t i = 0; i < sizeof(handlers) / sizeof(struct action_handler); i++) {
+		if (handlers[i].action == message->type) {
+			handlers[i].handler(pipe, message);
+			return;
+		}
+	}
+	worker_post_message(pipe, WORKER_UNSUPPORTED, message, NULL);
 }
 
 void *imap_worker(void *_pipe) {
