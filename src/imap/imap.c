@@ -48,11 +48,10 @@ void imap_init(struct imap_connection *imap) {
 bool imap_connect(struct imap_connection *imap, const char *host,
 		const char *port, bool use_ssl) {
 	imap_init(imap);
-	if (use_ssl) {
-		worker_log(L_ERROR, "TODO: SSL");
+	imap->socket = absocket_new(host, port, use_ssl);
+	if (!imap->socket) {
 		return false;
 	}
-	imap->socket = absocket_new(host, port, use_ssl);
 	imap->poll[0].fd = imap->socket->basefd;
 	imap->poll[0].events = POLLIN;
 	return true;

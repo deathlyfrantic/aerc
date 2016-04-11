@@ -31,7 +31,7 @@ absocket_t *absocket_new(const char *host, const char *port, bool use_ssl) {
 	int s;
 	if ((s = getaddrinfo(host, port, &hints, &result))) {
 		worker_log(L_ERROR, "Connection failed: %s", gai_strerror(s));
-		return false;
+		return NULL;
 	}
 	int err = -1;
 	for (rp = result; rp != NULL; rp = rp->ai_next) {
@@ -49,7 +49,7 @@ absocket_t *absocket_new(const char *host, const char *port, bool use_ssl) {
 	if (rp == NULL) {
 		freeaddrinfo(result);
 		worker_log(L_ERROR, "Connection failed: %s", strerror(err));
-		return false;
+		return NULL;
 	}
 	freeaddrinfo(result);
 	abs->use_ssl = use_ssl;
