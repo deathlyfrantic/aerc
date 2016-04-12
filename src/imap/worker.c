@@ -3,6 +3,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include "worker.h"
 #include "urlparse.h"
 #include "imap/imap.h"
@@ -32,13 +33,27 @@ void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *mess
 	bool res = imap_connect(imap, uri.hostname, uri.port, ssl);
 	if (res) {
 		worker_log(L_INFO, "Connected to IMAP server");
-		worker_post_message(pipe, WORKER_CONNECT_DONE, message, NULL);
+		if (ssl) {
+#ifdef USE_OPENSSL
+			struct cert_check_message *ccm = calloc(1,
+					sizeof(struct cert_check_message));
+			ccm->cert = imap->socket->cert;
+			worker_post_message(pipe, WORKER_CONNECT_CERT_CHECK, message, ccm);
+#endif
+		} else {
+			worker_post_message(pipe, WORKER_CONNECT_DONE, message, NULL);
+			imap->mode = RECV_LINE;
+		}
 	} else {
 		worker_log(L_DEBUG, "Error connecting to IMAP server");
 		worker_post_message(pipe, WORKER_CONNECT_ERROR, message, NULL);
 	}
 	uri_free(&uri);
-	return;
+}
+
+void handle_worker_cert_okay(struct worker_pipe *pipe, struct worker_message *message) {
+	struct imap_connection *imap = pipe->data;
+	imap->mode = RECV_LINE;
 }
 
 struct action_handler {
@@ -46,7 +61,8 @@ struct action_handler {
 	void (*handler)(struct worker_pipe *pipe, struct worker_message *message);
 };
 struct action_handler handlers[] = {
-	{ WORKER_CONNECT, handle_worker_connect }
+	{ WORKER_CONNECT, handle_worker_connect },
+	{ WORKER_CONNECT_CERT_OKAY, handle_worker_cert_okay }
 };
 
 void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
@@ -67,7 +83,8 @@ void *imap_worker(void *_pipe) {
 	while (1) {
 		if (worker_get_action(pipe, &message)) {
 			if (message->type == WORKER_END) {
-				// TODO: Cleanup?
+				imap_close(imap);
+				free(imap);
 				worker_message_free(message);
 				return NULL;
 			} else {

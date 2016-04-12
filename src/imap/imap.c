@@ -17,7 +17,9 @@
 void imap_receive(struct imap_connection *imap) {
 	poll(imap->poll, 1, -1);
 	if (imap->poll[0].revents & POLLIN) {
-		if (imap->mode == RECV_LINE) {
+		if (imap->mode == RECV_WAIT) {
+			// no-op
+		} else if (imap->mode == RECV_LINE) {
 			ssize_t amt = ab_recv(imap->socket, imap->line + imap->line_index,
 					imap->line_size - imap->line_index, 0);
 			imap->line_index += amt;
@@ -39,10 +41,18 @@ void imap_receive(struct imap_connection *imap) {
 }
 
 void imap_init(struct imap_connection *imap) {
-	imap->mode = RECV_LINE;
+	imap->mode = RECV_WAIT;
 	imap->line = calloc(1, BUFFER_SIZE + 1);
 	imap->line_index = 0;
 	imap->line_size = BUFFER_SIZE;
+}
+
+void imap_close(struct imap_connection *imap) {
+	if (imap->socket) {
+		absocket_free(imap->socket);
+	}
+	free(imap->line);
+	free(imap);
 }
 
 bool imap_connect(struct imap_connection *imap, const char *host,

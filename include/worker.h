@@ -1,6 +1,10 @@
 #ifndef _WORKER_H
 #define _WORKER_H
 #include "util/aqueue.h"
+#ifdef USE_OPENSSL
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
+#endif
 
 /* worker.h
  *
@@ -17,6 +21,10 @@ enum worker_message_type {
     WORKER_CONNECT,
     WORKER_CONNECT_DONE,
     WORKER_CONNECT_ERROR,
+#ifdef USE_OPENSSL
+    WORKER_CONNECT_CERT_CHECK,
+    WORKER_CONNECT_CERT_OKAY,
+#endif
     /* Listing */
     WORKER_LIST,
     WORKER_LIST_ITEM,
@@ -38,6 +46,12 @@ struct worker_message {
     struct worker_message *in_response_to;
     void *data;
 };
+
+#ifdef USE_OPENSSL
+struct cert_check_message {
+    X509 *cert;
+};
+#endif
 
 /* Misc */
 struct worker_pipe *worker_pipe_new();

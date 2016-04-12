@@ -7,6 +7,10 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#ifdef USE_OPENSSL
+#include <openssl/x509.h>
+#include <openssl/x509v3.h>
+#endif
 #include "absocket.h"
 #include "worker.h"
 #include "imap/worker.h"
@@ -19,6 +23,10 @@ void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg)
 		break;
 	case WORKER_CONNECT_ERROR:
 		fprintf(stderr, "Error connecting to mail service.\n");
+		break;
+	case WORKER_CONNECT_CERT_CHECK:
+		fprintf(stderr, "TODO: interactive certificate check\n");
+		worker_post_action(pipe, WORKER_CONNECT_CERT_OKAY, msg, NULL);
 		break;
 	default:
 		// No-op

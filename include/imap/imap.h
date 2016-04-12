@@ -7,6 +7,7 @@
 #include "worker.h"
 
 enum recv_mode {
+    RECV_WAIT,
     RECV_LINE,
     RECV_BULK
 };
@@ -22,5 +23,6 @@ struct imap_connection {
 bool imap_connect(struct imap_connection *imap, const char *host,
         const char *port, bool use_ssl);
 void imap_receive(struct imap_connection *imap);
+void imap_close(struct imap_connection *imap);
 
 #endif
