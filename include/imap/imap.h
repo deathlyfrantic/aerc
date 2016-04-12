@@ -18,11 +18,19 @@ struct imap_connection {
     char *line;
     int line_index, line_size;
     struct pollfd poll[1];
+    int next_tag;
 };
+
+typedef void (*imap_handler_t)(struct imap_connection *imap,
+        const char *token, const char *cmd, const char *args);
 
 bool imap_connect(struct imap_connection *imap, const char *host,
         const char *port, bool use_ssl);
 void imap_receive(struct imap_connection *imap);
 void imap_close(struct imap_connection *imap);
+
+// Handlers
+void handle_imap_OK(struct imap_connection *imap, const char *token,
+		const char *cmd, const char *args);
 
 #endif

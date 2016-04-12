@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 	// TODO: configuration
 	char *connection_string = getenv("CS");
 	if (!connection_string || strlen(connection_string) == 0) {
-		fprintf(stderr, "Usage: CS='connection string' %s\n", argv[0]);
+		fprintf(stderr, "Usage: env CS='connection string' %s\n", argv[0]);
 		exit(1);
 	}
 	worker_post_action(worker_pipe, WORKER_CONNECT, NULL, connection_string);

@@ -40,9 +40,6 @@ void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *mess
 			ccm->cert = imap->socket->cert;
 			worker_post_message(pipe, WORKER_CONNECT_CERT_CHECK, message, ccm);
 #endif
-		} else {
-			worker_post_message(pipe, WORKER_CONNECT_DONE, message, NULL);
-			imap->mode = RECV_LINE;
 		}
 	} else {
 		worker_log(L_DEBUG, "Error connecting to IMAP server");
@@ -80,6 +77,7 @@ void *imap_worker(void *_pipe) {
 	struct worker_message *message;
 	struct imap_connection *imap = calloc(1, sizeof(struct imap_connection));
 	pipe->data = imap;
+	worker_log(L_DEBUG, "Starting IMAP worker");
 	while (1) {
 		if (worker_get_action(pipe, &message)) {
 			if (message->type == WORKER_END) {

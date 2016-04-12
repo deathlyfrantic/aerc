@@ -1,18 +1,39 @@
 #define _POSIX_C_SOURCE 201112LL
 #include <errno.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
 #include <poll.h>
+#include "util/hashtable.h"
+#include "util/stringop.h"
 #include "imap/imap.h"
 #include "worker.h"
 #include "log.h"
 #define BUFFER_SIZE 1024
+
+bool inited = false;
+hashtable_t *internal_handlers = NULL;
+
+void handle_line(struct imap_connection *imap, const char *line) {
+	list_t *split = split_string(line, " ");
+	if (split->length <= 2) {
+		free_flat_list(split);
+		worker_log(L_DEBUG, "Got malformed IMAP command: %s", line);
+		return;
+	}
+	imap_handler_t handler = hashtable_get(internal_handlers, split->items[1]);
+	if (handler) {
+		char *joined = join_args((char **)(split->items + 2),
+				split->length - 2);
+		handler(imap, split->items[0], split->items[1], joined);
+		free(joined);
+	} else {
+		worker_log(L_DEBUG, "Recieved unknown IMAP command: %s", line);
+	}
+	free_flat_list(split);
+}
 
 void imap_receive(struct imap_connection *imap) {
 	poll(imap->poll, 1, -1);
@@ -33,11 +54,21 @@ void imap_receive(struct imap_connection *imap) {
 			char *esc;
 			while ((esc = strstr(imap->line, "\r\n"))) {
 				*esc = '\0';
-				worker_log(L_DEBUG, "[IMAP] %s", imap->line);
+				handle_line(imap, imap->line);
 				memmove(imap->line, esc + 2, imap->line_size - (esc - imap->line + 2));
 			}
 		}
 	}
+}
+
+unsigned int hash_imap_command(const void *_cmd) {
+	const char *cmd = _cmd;
+	unsigned int hash = 5381;
+	char c;
+	while ((c = *cmd++)) {
+		hash = ((hash << 5) + hash) + c;
+	}
+	return hash;
 }
 
 void imap_init(struct imap_connection *imap) {
@@ -45,6 +76,11 @@ void imap_init(struct imap_connection *imap) {
 	imap->line = calloc(1, BUFFER_SIZE + 1);
 	imap->line_index = 0;
 	imap->line_size = BUFFER_SIZE;
+	imap->next_tag = 0;
+	if (internal_handlers == NULL) {
+		internal_handlers = create_hashtable(128, hash_imap_command);
+		hashtable_set(internal_handlers, "OK", handle_imap_OK);
+	}
 }
 
 void imap_close(struct imap_connection *imap) {
