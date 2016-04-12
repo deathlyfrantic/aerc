@@ -10,6 +10,16 @@
 
 const char whitespace[] = " \f\n\r\t\v";
 
+unsigned int hash_string(const void *_str) {
+	const char *str = _str;
+	unsigned int hash = 5381;
+	char c;
+	while ((c = *str++)) {
+		hash = ((hash << 5) + hash) + c;
+	}
+	return hash;
+}
+
 char *strip_whitespace(char *_str) {
 	if (*_str == '\0')
 		return _str;

@@ -36,6 +36,7 @@ void imap_receive(struct imap_connection *imap);
 void imap_close(struct imap_connection *imap);
 
 // Handlers
+void init_status_handlers();
 void handle_imap_status(struct imap_connection *imap, const char *token,
 		const char *cmd, const char *args);
 
