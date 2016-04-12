@@ -13,6 +13,14 @@ enum recv_mode {
     RECV_BULK
 };
 
+struct imap_capabilities {
+    bool imap4rev1;
+    bool starttls;
+    bool logindisabled;
+    bool auth_plain;
+    bool auth_login;
+};
+
 struct imap_connection {
     absocket_t *socket;
     enum recv_mode mode;
@@ -24,7 +32,9 @@ struct imap_connection {
     struct {
         void *data;
         void (*ready)(void *data);
+        void (*cap)(void *data);
     } events;
+    struct imap_capabilities *cap;
 };
 
 typedef void (*imap_handler_t)(struct imap_connection *imap,

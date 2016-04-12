@@ -13,7 +13,29 @@ void handle_resp_CAPABILITY(struct imap_connection *imap, list_t *args) {
 	char *j = join_args((char **)args->items, args->length);
 	worker_log(L_DEBUG, "Server capabilities: %s", j);
 	free(j);
-	// TODO: Do something with them?
+
+	struct imap_capabilities *cap = calloc(1,
+			sizeof(struct imap_capabilities));
+
+	struct { char *name; bool *ptr; } ptrs[] = {
+		{ "IMAP4rev1", &cap->imap4rev1 },
+		{ "STARTTLS", &cap->starttls },
+		{ "LOGINDISABLED", &cap->logindisabled },
+		{ "AUTH=PLAIN", &cap->auth_plain },
+		{ "AUTH=LOGIN", &cap->auth_login }
+	};
+
+	for (int i = 1; i < args->length; ++i) {
+		for (size_t j = 0; j < sizeof(ptrs) / (sizeof(void*) * 2); ++j) {
+			if (strcmp(ptrs[j].name, args->items[i]) == 0) {
+				*ptrs[j].ptr = true;
+			}
+		}
+	}
+	imap->cap = cap;
+	if (imap->events.cap) {
+		imap->events.cap(imap->events.data);
+	}
 }
 
 hashtable_t *response_handlers;
@@ -28,7 +50,9 @@ void init_status_handlers() {
 void handle_imap_OK(struct imap_connection *imap, const char *token,
 		const char *cmd, const char *args) {
 	worker_log(L_DEBUG, "IMAP OK: %s", args);
-	imap->events.ready(imap->events.data);
+	if (imap->events.ready) {
+		imap->events.ready(imap->events.data);
+	}
 }
 
 void handle_imap_status(struct imap_connection *imap, const char *token,
