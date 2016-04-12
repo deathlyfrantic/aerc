@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <poll.h>
+#include "util/hashtable.h"
 #include "absocket.h"
 #include "worker.h"
 
@@ -19,6 +20,11 @@ struct imap_connection {
     int line_index, line_size;
     struct pollfd poll[1];
     int next_tag;
+    hashtable_t *pending;
+    struct {
+        void *data;
+        void (*ready)(void *data);
+    } events;
 };
 
 typedef void (*imap_handler_t)(struct imap_connection *imap,
@@ -30,7 +36,7 @@ void imap_receive(struct imap_connection *imap);
 void imap_close(struct imap_connection *imap);
 
 // Handlers
-void handle_imap_OK(struct imap_connection *imap, const char *token,
+void handle_imap_status(struct imap_connection *imap, const char *token,
 		const char *cmd, const char *args);
 
 #endif

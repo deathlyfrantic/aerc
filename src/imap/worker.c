@@ -72,10 +72,22 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 	worker_post_message(pipe, WORKER_UNSUPPORTED, message, NULL);
 }
 
+void handle_imap_ready(void *_pipe) {
+	struct worker_pipe *pipe = _pipe;
+	worker_post_message(pipe, WORKER_CONNECT_DONE, NULL, NULL);
+}
+
+void register_imap_handlers(struct imap_connection *imap,
+		struct worker_pipe *pipe) {
+	imap->events.data = pipe;
+	imap->events.ready = handle_imap_ready;
+}
+
 void *imap_worker(void *_pipe) {
 	struct worker_pipe *pipe = _pipe;
 	struct worker_message *message;
 	struct imap_connection *imap = calloc(1, sizeof(struct imap_connection));
+	register_imap_handlers(imap, pipe);
 	pipe->data = imap;
 	worker_log(L_DEBUG, "Starting IMAP worker");
 	while (1) {

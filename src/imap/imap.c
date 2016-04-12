@@ -61,7 +61,7 @@ void imap_receive(struct imap_connection *imap) {
 	}
 }
 
-unsigned int hash_imap_command(const void *_cmd) {
+unsigned int hash_string(const void *_cmd) {
 	const char *cmd = _cmd;
 	unsigned int hash = 5381;
 	char c;
@@ -77,9 +77,17 @@ void imap_init(struct imap_connection *imap) {
 	imap->line_index = 0;
 	imap->line_size = BUFFER_SIZE;
 	imap->next_tag = 0;
+	imap->pending = create_hashtable(128, hash_string);
 	if (internal_handlers == NULL) {
-		internal_handlers = create_hashtable(128, hash_imap_command);
-		hashtable_set(internal_handlers, "OK", handle_imap_OK);
+		internal_handlers = create_hashtable(128, hash_string);
+		// Status commands
+		hashtable_set(internal_handlers, "OK", handle_imap_status);
+		hashtable_set(internal_handlers, "NO", handle_imap_status);
+		hashtable_set(internal_handlers, "BAD", handle_imap_status);
+		hashtable_set(internal_handlers, "PREAUTH", handle_imap_status);
+		hashtable_set(internal_handlers, "BYE", handle_imap_status);
+		// Other commands
+		// (TODO)
 	}
 }
 
