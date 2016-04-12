@@ -47,6 +47,7 @@ void handle_imap_status(struct imap_connection *imap, const char *token,
 			handler(imap, split);
 		}
 		free_flat_list(split);
+		free(status);
 	}
 	if (strcmp(token, "*") == 0) {
 		if (strcmp(cmd, "OK") == 0) {
