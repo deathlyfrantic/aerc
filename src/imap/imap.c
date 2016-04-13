@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <poll.h>
+#include <stdarg.h>
 #include "util/hashtable.h"
 #include "util/stringop.h"
 #include "imap/imap.h"
@@ -23,6 +24,7 @@ void handle_line(struct imap_connection *imap, const char *line) {
 		worker_log(L_DEBUG, "Got malformed IMAP command: %s", line);
 		return;
 	}
+	worker_log(L_DEBUG, "<- %s", line);
 	imap_handler_t handler = hashtable_get(internal_handlers, split->items[1]);
 	if (handler) {
 		char *joined = join_args((char **)(split->items + 2),
@@ -35,6 +37,30 @@ void handle_line(struct imap_connection *imap, const char *line) {
 	free_flat_list(split);
 }
 
+void imap_send(struct imap_connection *imap, imap_callback_t callback,
+		void *data, const char *fmt, ...) {
+	va_list args;
+	va_start(args, fmt);
+	int len = vsnprintf(NULL, 0, fmt, args);
+	va_end(args);
+
+	char *buf = malloc(len + 1);
+
+	va_start(args, fmt);
+	vsnprintf(buf, len + 1, fmt, args);
+	va_end(args);
+
+	len = snprintf(NULL, 0, "a%04d %s\r\n", imap->next_tag, buf);
+	worker_log(L_DEBUG, "-> a%04d %s", imap->next_tag, buf);
+	char *tag = malloc(len + 1);
+	snprintf(tag, len + 1, "a%04d %s\r\n", imap->next_tag++, buf);
+	ab_send(imap->socket, tag, len);
+	// TODO: Store callback
+
+	free(buf);
+	free(tag);
+}
+
 void imap_receive(struct imap_connection *imap) {
 	poll(imap->poll, 1, -1);
 	if (imap->poll[0].revents & POLLIN) {
@@ -42,7 +68,7 @@ void imap_receive(struct imap_connection *imap) {
 			// no-op
 		} else if (imap->mode == RECV_LINE) {
 			ssize_t amt = ab_recv(imap->socket, imap->line + imap->line_index,
-					imap->line_size - imap->line_index, 0);
+					imap->line_size - imap->line_index);
 			imap->line_index += amt;
 			if (imap->line_index == imap->line_size) {
 				imap->line = realloc(imap->line,
@@ -56,6 +82,7 @@ void imap_receive(struct imap_connection *imap) {
 				*esc = '\0';
 				handle_line(imap, imap->line);
 				memmove(imap->line, esc + 2, imap->line_size - (esc - imap->line + 2));
+				imap->line_index = 0;
 			}
 		}
 	}
@@ -66,7 +93,7 @@ void imap_init(struct imap_connection *imap) {
 	imap->line = calloc(1, BUFFER_SIZE + 1);
 	imap->line_index = 0;
 	imap->line_size = BUFFER_SIZE;
-	imap->next_tag = 0;
+	imap->next_tag = 1;
 	imap->pending = create_hashtable(128, hash_string);
 	if (internal_handlers == NULL) {
 		internal_handlers = create_hashtable(128, hash_string);

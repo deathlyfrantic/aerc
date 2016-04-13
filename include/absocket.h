@@ -26,6 +26,7 @@ typedef struct absocket absocket_t;
 void abs_init();
 absocket_t *absocket_new(const char *host, const char *port, bool use_ssl);
 void absocket_free(absocket_t *socket);
-ssize_t ab_recv(absocket_t *socket, void *buffer, size_t len, int flags);
+ssize_t ab_recv(absocket_t *socket, void *buffer, size_t len);
+ssize_t ab_send(absocket_t *socket, void *buffer, size_t len);
 
 #endif

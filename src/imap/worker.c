@@ -40,6 +40,8 @@ void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *mess
 			ccm->cert = imap->socket->cert;
 			worker_post_message(pipe, WORKER_CONNECT_CERT_CHECK, message, ccm);
 #endif
+		} else {
+			imap->mode = RECV_LINE;
 		}
 	} else {
 		worker_log(L_DEBUG, "Error connecting to IMAP server");
@@ -74,6 +76,17 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 
 void handle_imap_ready(void *_pipe) {
 	struct worker_pipe *pipe = _pipe;
+	struct imap_connection *imap = pipe->data;
+	if (!imap->cap || true) {
+		imap_send(imap, NULL, NULL, "CAPABILITY");
+		return;
+	}
+	if (!imap->cap->imap4rev1) {
+		worker_log(L_ERROR, "IMAP server does not support IMAP4rev1");
+		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, NULL);
+		return;
+	}
+	// TODO: login here
 	worker_post_message(pipe, WORKER_CONNECT_DONE, NULL, NULL);
 }
 

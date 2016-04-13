@@ -160,10 +160,18 @@ void absocket_free(absocket_t *socket) {
 	free(socket);
 }
 
-ssize_t ab_recv(absocket_t *socket, void *buffer, size_t len, int flags) {
+ssize_t ab_recv(absocket_t *socket, void *buffer, size_t len) {
 	if (socket->use_ssl) {
 		return SSL_read(socket->ssl, buffer, len);
 	} else {
-		return recv(socket->basefd, buffer, len, flags);
+		return recv(socket->basefd, buffer, len, 0);
+	}
+}
+
+ssize_t ab_send(absocket_t *socket, void *buffer, size_t len) {
+	if (socket->use_ssl) {
+		return SSL_write(socket->ssl, buffer, len);
+	} else {
+		return send(socket->basefd, buffer, len, 0);
 	}
 }

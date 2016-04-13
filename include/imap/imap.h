@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <poll.h>
+#include <stdarg.h>
 #include "util/hashtable.h"
 #include "absocket.h"
 #include "worker.h"
@@ -39,10 +40,18 @@ struct imap_connection {
 
 typedef void (*imap_handler_t)(struct imap_connection *imap,
         const char *token, const char *cmd, const char *args);
+typedef void (*imap_callback_t)(struct imap_connection *imap, void *data);
+
+struct imap_pending_callback {
+    imap_callback_t callback;
+    void *data;
+};
 
 bool imap_connect(struct imap_connection *imap, const char *host,
         const char *port, bool use_ssl);
 void imap_receive(struct imap_connection *imap);
+void imap_send(struct imap_connection *imap, imap_callback_t callback,
+		void *data, const char *fmt, ...);
 void imap_close(struct imap_connection *imap);
 
 // Handlers
