@@ -70,11 +70,11 @@ bool parse_uri(struct uri *res, const char *src) {
 		*at = '\0';
 		res->port = strdup(at + 1);
 	}
-	if (!*cur) return true;
 	if (!percent_decode(res->hostname)) return false;
 	if (!percent_decode(res->username)) return false;
 	if (!percent_decode(res->password)) return false;
 	if (!percent_decode(res->port)) return false;
+	if (!*cur) return true;
 
 	// TODO: Extract path/query/fragment if anyone cares
 	return false;

@@ -56,9 +56,13 @@ void imap_send(struct imap_connection *imap, imap_callback_t callback,
 	len = snprintf(NULL, 0, "%s %s\r\n", tag, buf);
 	char *cmd = malloc(len + 1);
 	snprintf(cmd, len + 1, "%s %s\r\n", tag, buf);
-	worker_log(L_DEBUG, "-> %s %s", tag, buf);
 	ab_send(imap->socket, cmd, len);
 	hashtable_set(imap->pending, tag, callback);
+	if (strncmp("LOGIN ", buf, 6) != 0) {
+		worker_log(L_DEBUG, "-> %s %s", tag, buf);
+	} else {
+		worker_log(L_DEBUG, "-> %s LOGIN *****", tag);
+	}
 
 	free(cmd);
 	free(buf);

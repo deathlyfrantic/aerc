@@ -5,6 +5,7 @@
 #include <poll.h>
 #include <stdarg.h>
 #include "util/hashtable.h"
+#include "urlparse.h"
 #include "absocket.h"
 #include "worker.h"
 
@@ -34,7 +35,7 @@ typedef void (*imap_callback_t)(struct imap_connection *imap,
         enum imap_status status, const char *args);
 
 struct imap_connection {
-    bool ready;
+    bool ready, logged_in;
     absocket_t *socket;
     enum recv_mode mode;
     char *line;
@@ -48,6 +49,7 @@ struct imap_connection {
         imap_callback_t cap;
     } events;
     struct imap_capabilities *cap;
+    struct uri *uri;
 };
 
 struct imap_pending_callback {
