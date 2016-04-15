@@ -53,10 +53,13 @@ void imap_receive(struct imap_connection *imap);
 void imap_send(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *fmt, ...);
 void imap_close(struct imap_connection *imap);
+void handle_line(struct imap_connection *imap, const char *line);
 
 // Handlers
 void init_status_handlers();
 void handle_imap_status(struct imap_connection *imap, const char *token,
 		const char *cmd, const char *args);
+void handle_imap_capability(struct imap_connection *imap, const char *token,
+		const char *cmd, const char *_args);
 
 #endif
