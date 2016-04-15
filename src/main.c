@@ -19,7 +19,7 @@
 void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg) {
 	switch (msg->type) {
 	case WORKER_CONNECT_DONE:
-		fprintf(stderr, "Connected.\n");
+		fprintf(stderr, "Connection complete.\n");
 		break;
 	case WORKER_CONNECT_ERROR:
 		fprintf(stderr, "Error connecting to mail service.\n");

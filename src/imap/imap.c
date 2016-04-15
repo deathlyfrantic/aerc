@@ -24,7 +24,8 @@ void handle_line(struct imap_connection *imap, const char *line) {
 		worker_log(L_DEBUG, "Got malformed IMAP command: %s", line);
 		return;
 	}
-	worker_log(L_DEBUG, "<- %s", line);
+	worker_log(L_DEBUG, "<- %s %s", (char *)split->items[0],
+			(char *)split->items[1]);
 	imap_handler_t handler = hashtable_get(internal_handlers, split->items[1]);
 	if (handler) {
 		char *joined = join_args((char **)(split->items + 2),
