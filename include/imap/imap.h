@@ -22,7 +22,19 @@ struct imap_capabilities {
     bool auth_login;
 };
 
+enum imap_status {
+    STATUS_OK, STATUS_NO, STATUS_BAD, STATUS_PREAUTH, STATUS_BYE
+};
+
+struct imap_connection;
+
+typedef void (*imap_handler_t)(struct imap_connection *imap,
+        const char *token, const char *cmd, const char *args);
+typedef void (*imap_callback_t)(struct imap_connection *imap,
+        enum imap_status status, const char *args);
+
 struct imap_connection {
+    bool ready;
     absocket_t *socket;
     enum recv_mode mode;
     char *line;
@@ -30,17 +42,13 @@ struct imap_connection {
     struct pollfd poll[1];
     int next_tag;
     hashtable_t *pending;
+    void *data;
     struct {
-        void *data;
-        void (*ready)(void *data);
-        void (*cap)(void *data);
+        imap_callback_t ready;
+        imap_callback_t cap;
     } events;
     struct imap_capabilities *cap;
 };
-
-typedef void (*imap_handler_t)(struct imap_connection *imap,
-        const char *token, const char *cmd, const char *args);
-typedef void (*imap_callback_t)(struct imap_connection *imap, void *data);
 
 struct imap_pending_callback {
     imap_callback_t callback;
@@ -51,7 +59,7 @@ bool imap_connect(struct imap_connection *imap, const char *host,
         const char *port, bool use_ssl);
 void imap_receive(struct imap_connection *imap);
 void imap_send(struct imap_connection *imap, imap_callback_t callback,
-		void *data, const char *fmt, ...);
+		const char *fmt, ...);
 void imap_close(struct imap_connection *imap);
 void handle_line(struct imap_connection *imap, const char *line);
 

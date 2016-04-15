@@ -74,11 +74,15 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 	worker_post_message(pipe, WORKER_UNSUPPORTED, message, NULL);
 }
 
-void handle_imap_ready(void *_pipe) {
-	struct worker_pipe *pipe = _pipe;
-	struct imap_connection *imap = pipe->data;
-	if (!imap->cap || true) {
-		imap_send(imap, NULL, NULL, "CAPABILITY");
+void handle_imap_cap(struct imap_connection *imap,
+		enum imap_status status, const char *args) {
+	if (!imap->ready) {
+		return;
+	}
+	struct worker_pipe *pipe = imap->data;
+	if (status != STATUS_OK) {
+		worker_log(L_ERROR, "IMAP error: %s", args);
+		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, NULL);
 		return;
 	}
 	if (!imap->cap->imap4rev1) {
@@ -86,14 +90,25 @@ void handle_imap_ready(void *_pipe) {
 		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, NULL);
 		return;
 	}
-	// TODO: login here
+	// TODO: Login
 	worker_post_message(pipe, WORKER_CONNECT_DONE, NULL, NULL);
+}
+
+void handle_imap_ready(struct imap_connection *imap,
+		enum imap_status status, const char *args) {
+	struct worker_pipe *pipe = imap->data;
+	if (!imap->cap) {
+		imap_send(imap, handle_imap_cap, "CAPABILITY");
+		return;
+	}
+	handle_imap_cap((struct imap_connection *)pipe->data, STATUS_OK, NULL);
 }
 
 void register_imap_handlers(struct imap_connection *imap,
 		struct worker_pipe *pipe) {
-	imap->events.data = pipe;
+	imap->data = pipe;
 	imap->events.ready = handle_imap_ready;
+	imap->events.cap = handle_imap_cap;
 }
 
 void *imap_worker(void *_pipe) {

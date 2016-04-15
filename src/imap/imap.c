@@ -38,7 +38,7 @@ void handle_line(struct imap_connection *imap, const char *line) {
 }
 
 void imap_send(struct imap_connection *imap, imap_callback_t callback,
-		void *data, const char *fmt, ...) {
+		const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	int len = vsnprintf(NULL, 0, fmt, args);
@@ -50,13 +50,17 @@ void imap_send(struct imap_connection *imap, imap_callback_t callback,
 	vsnprintf(buf, len + 1, fmt, args);
 	va_end(args);
 
-	len = snprintf(NULL, 0, "a%04d %s\r\n", imap->next_tag, buf);
-	worker_log(L_DEBUG, "-> a%04d %s", imap->next_tag, buf);
+	len = snprintf(NULL, 0, "a%04d", imap->next_tag);
 	char *tag = malloc(len + 1);
-	snprintf(tag, len + 1, "a%04d %s\r\n", imap->next_tag++, buf);
-	ab_send(imap->socket, tag, len);
-	// TODO: Store callback
+	snprintf(tag, len + 1, "a%04d", imap->next_tag++);
+	len = snprintf(NULL, 0, "%s %s\r\n", tag, buf);
+	char *cmd = malloc(len + 1);
+	snprintf(cmd, len + 1, "%s %s\r\n", tag, buf);
+	worker_log(L_DEBUG, "-> %s %s", tag, buf);
+	ab_send(imap->socket, cmd, len);
+	hashtable_set(imap->pending, tag, callback);
 
+	free(cmd);
 	free(buf);
 	free(tag);
 }

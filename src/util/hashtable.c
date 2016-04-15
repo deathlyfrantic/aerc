@@ -24,6 +24,25 @@ void free_hashtable(hashtable_t *table) {
 	free(table);
 }
 
+bool hashtable_contains(hashtable_t *table, const void *key) {
+	unsigned int hash = table->hash(key);
+	unsigned int bucket = hash % table->bucket_count;
+	hashtable_entry_t *entry = table->buckets[bucket];
+	if (entry) {
+		if (entry->key != hash) {
+			while (entry->next) {
+				entry = entry->next;
+				if (!entry || entry->key == hash) {
+					break;
+				}
+			}
+		}
+	} else {
+		return false;
+	}
+	return true;
+}
+
 void *hashtable_get(hashtable_t *table, const void *key) {
 	unsigned int hash = table->hash(key);
 	unsigned int bucket = hash % table->bucket_count;
@@ -70,4 +89,34 @@ void *hashtable_set(hashtable_t *table, const void *key, void *value) {
 	void *old = entry->value;
 	entry->value = value;
 	return old;
+}
+
+void *hashtable_del(hashtable_t *table, const void *key) {
+	unsigned int hash = table->hash(key);
+	unsigned int bucket = hash % table->bucket_count;
+	hashtable_entry_t *entry = table->buckets[bucket];
+	hashtable_entry_t *previous = NULL;
+	if (entry) {
+		if (entry->key != hash) {
+			while (entry->next) {
+				previous = entry;
+				entry = entry->next;
+				if (!entry || entry->key == hash) {
+					break;
+				}
+			}
+		}
+	}
+	if (entry == NULL) {
+		return NULL;
+	} else {
+		void *old = entry->value;
+		if (previous) {
+			previous->next = entry->next;
+		} else {
+			table->buckets[bucket] = NULL;
+		}
+		free(entry);
+		return old;
+	}
 }
