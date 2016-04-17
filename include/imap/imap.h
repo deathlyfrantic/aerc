@@ -7,7 +7,6 @@
 #include "util/hashtable.h"
 #include "urlparse.h"
 #include "absocket.h"
-#include "worker.h"
 
 enum recv_mode {
     RECV_WAIT,

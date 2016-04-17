@@ -19,11 +19,13 @@ endif()
 FILE(GLOB src ${PROJECT_SOURCE_DIR}/src/*.c)
 FILE(GLOB util ${PROJECT_SOURCE_DIR}/src/util/*.c)
 FILE(GLOB imap ${PROJECT_SOURCE_DIR}/src/imap/*.c)
+FILE(GLOB imap_worker ${PROJECT_SOURCE_DIR}/src/imap/worker/*.c)
 
 add_executable(aerc
     ${src}
     ${util}
     ${imap}
+    ${imap_worker}
 )
 
 TARGET_LINK_LIBRARIES(aerc pthread ${OPENSSL_LIBRARIES})
