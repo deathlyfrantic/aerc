@@ -106,8 +106,7 @@ void handle_imap_ready(struct imap_connection *imap, void *data,
 		enum imap_status status, const char *args) {
 	struct worker_pipe *pipe = data;
 	if (!imap->cap) {
-		// TODO: imap_capability function
-		imap_send(imap, handle_imap_cap, pipe, "CAPABILITY");
+		imap_capability(imap, handle_imap_cap, pipe);
 		return;
 	}
 	handle_imap_cap(imap, pipe, STATUS_OK, NULL);

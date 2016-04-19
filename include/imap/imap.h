@@ -78,5 +78,7 @@ void handle_imap_list(struct imap_connection *imap, const char *token,
 // Do...ers?
 void imap_list(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *refname, const char *boxname);
+void imap_capability(struct imap_connection *imap, imap_callback_t callback,
+        void *data);
 
 #endif
