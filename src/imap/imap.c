@@ -9,7 +9,7 @@
 #include <stdarg.h>
 #include "util/hashtable.h"
 #include "util/stringop.h"
-#include "imap/imap.h"
+#include "internal/imap.h"
 #include "worker.h"
 #include "log.h"
 #define BUFFER_SIZE 1024

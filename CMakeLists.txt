@@ -9,7 +9,9 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wextra")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-parameter")
 
-include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories(
+    ${PROJECT_SOURCE_DIR}/include
+)
 
 find_package(OpenSSL)
 if(OPENSSL_FOUND)

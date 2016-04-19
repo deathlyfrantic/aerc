@@ -1,7 +1,7 @@
 #ifndef _IMAP_H
 #define _IMAP_H
 
-// RFC 3501
+// Implements RFC 3501 (Internet Mail Access Protocol)
 
 #include <stdbool.h>
 #include <poll.h>
@@ -10,11 +10,9 @@
 #include "urlparse.h"
 #include "absocket.h"
 
-enum recv_mode {
-    RECV_WAIT,
-    RECV_LINE,
-    RECV_BULK
-};
+// TODO: Refactor these into the internal header:
+// - recv_mode
+// - struct imap_connection
 
 struct imap_capabilities {
     bool imap4rev1;
@@ -27,6 +25,12 @@ struct imap_capabilities {
 
 enum imap_status {
     STATUS_OK, STATUS_NO, STATUS_BAD, STATUS_PREAUTH, STATUS_BYE
+};
+
+enum recv_mode {
+    RECV_WAIT,
+    RECV_LINE,
+    RECV_BULK
 };
 
 struct imap_connection;
@@ -52,30 +56,13 @@ struct imap_connection {
     struct uri *uri;
 };
 
-struct imap_pending_callback {
-    imap_callback_t callback;
-    void *data;
-};
-
 bool imap_connect(struct imap_connection *imap, const char *host,
 		const char *port, bool use_ssl, imap_callback_t callback, void *data);
 void imap_receive(struct imap_connection *imap);
 void imap_send(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *fmt, ...);
 void imap_close(struct imap_connection *imap);
-void handle_line(struct imap_connection *imap, const char *line);
-struct imap_pending_callback *make_callback(imap_callback_t callback, void *data);
 
-// Handlers
-void init_status_handlers();
-void handle_imap_status(struct imap_connection *imap, const char *token,
-		const char *cmd, const char *args);
-void handle_imap_capability(struct imap_connection *imap, const char *token,
-		const char *cmd, const char *_args);
-void handle_imap_list(struct imap_connection *imap, const char *token,
-		const char *cmd, const char *_args);
-
-// Do...ers?
 void imap_list(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *refname, const char *boxname);
 void imap_capability(struct imap_connection *imap, imap_callback_t callback,

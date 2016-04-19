@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
-#include "imap/imap.h"
+#include "internal/imap.h"
 #include "util/stringop.h"
 #include "util/list.h"
 #include "log.h"

@@ -1,4 +1,4 @@
-#include "imap/imap.h"
+#include "internal/imap.h"
 #include "util/list.h"
 #include "util/stringop.h"
 
