@@ -1,6 +1,8 @@
 #ifndef _IMAP_H
 #define _IMAP_H
 
+// RFC 3501
+
 #include <stdbool.h>
 #include <poll.h>
 #include <stdarg.h>
@@ -20,6 +22,7 @@ struct imap_capabilities {
     bool logindisabled;
     bool auth_plain;
     bool auth_login;
+    bool idle;
 };
 
 enum imap_status {
@@ -32,6 +35,10 @@ typedef void (*imap_handler_t)(struct imap_connection *imap,
         const char *token, const char *cmd, const char *args);
 typedef void (*imap_callback_t)(struct imap_connection *imap,
         enum imap_status status, const char *args);
+
+struct imap_state {
+    char *selected_mailbox;
+};
 
 struct imap_connection {
     bool ready, logged_in;
@@ -48,6 +55,7 @@ struct imap_connection {
         imap_callback_t cap;
     } events;
     struct imap_capabilities *cap;
+    struct imap_state *state;
     struct uri *uri;
 };
 
@@ -70,5 +78,11 @@ void handle_imap_status(struct imap_connection *imap, const char *token,
 		const char *cmd, const char *args);
 void handle_imap_capability(struct imap_connection *imap, const char *token,
 		const char *cmd, const char *_args);
+void handle_imap_list(struct imap_connection *imap, const char *token,
+		const char *cmd, const char *_args);
+
+// Do...ers?
+void imap_list(struct imap_connection *imap, imap_callback_t callback,
+		const char *refname, const char *boxname);
 
 #endif

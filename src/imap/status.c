@@ -22,7 +22,8 @@ void handle_imap_capability(struct imap_connection *imap, const char *token,
 		{ "STARTTLS", &cap->starttls },
 		{ "LOGINDISABLED", &cap->logindisabled },
 		{ "AUTH=PLAIN", &cap->auth_plain },
-		{ "AUTH=LOGIN", &cap->auth_login }
+		{ "AUTH=LOGIN", &cap->auth_login },
+		{ "IDLE", &cap->idle }
 	};
 
 	for (int i = 0; i < args->length; ++i) {

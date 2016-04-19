@@ -106,16 +106,13 @@ void imap_init(struct imap_connection *imap) {
 	imap->pending = create_hashtable(128, hash_string);
 	if (internal_handlers == NULL) {
 		internal_handlers = create_hashtable(128, hash_string);
-		// Status commands
 		hashtable_set(internal_handlers, "OK", handle_imap_status);
 		hashtable_set(internal_handlers, "NO", handle_imap_status);
 		hashtable_set(internal_handlers, "BAD", handle_imap_status);
 		hashtable_set(internal_handlers, "PREAUTH", handle_imap_status);
 		hashtable_set(internal_handlers, "BYE", handle_imap_status);
-		// Meta commands
 		hashtable_set(internal_handlers, "CAPABILITY", handle_imap_capability);
-		// Other commands
-		// (TODO)
+		hashtable_set(internal_handlers, "LIST", handle_imap_list);
 	}
 }
 
