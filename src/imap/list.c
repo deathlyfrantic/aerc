@@ -3,7 +3,7 @@
 #include "util/stringop.h"
 
 void imap_list(struct imap_connection *imap, imap_callback_t callback,
-		const char *refname, const char *boxname) {
+		void *data, const char *refname, const char *boxname) {
 	imap_send(imap, callback, "LIST \"%s\" \"%s\"", refname, boxname);
 }
 

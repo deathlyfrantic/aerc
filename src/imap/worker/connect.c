@@ -10,6 +10,9 @@
 #include "imap/worker.h"
 #include "log.h"
 
+void handle_imap_ready(struct imap_connection *imap, void *data,
+		enum imap_status status, const char *args);
+
 void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *message) {
 	struct imap_connection *imap = pipe->data;
 	worker_post_message(pipe, WORKER_ACK, message, NULL);
@@ -32,7 +35,8 @@ void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *mess
 	}
 	worker_log(L_DEBUG, "Connecting to IMAP server");
 	// TODO: imap_connect should just take a struct uri
-	bool res = imap_connect(imap, uri->hostname, uri->port, ssl);
+	bool res = imap_connect(imap, uri->hostname, uri->port, ssl,
+			handle_imap_ready, pipe);
 	if (res) {
 		worker_log(L_INFO, "Connected to IMAP server");
 		if (ssl) {
@@ -57,9 +61,9 @@ void handle_worker_cert_okay(struct worker_pipe *pipe, struct worker_message *me
 	imap->mode = RECV_LINE;
 }
 
-void handle_imap_logged_in(struct imap_connection *imap,
-		enum imap_status status, const char *args) {
-	struct worker_pipe *pipe = imap->data;
+void handle_imap_logged_in(struct imap_connection *imap, void *data,
+		enum imap_status status,const char *args) {
+	struct worker_pipe *pipe = data;
 	if (status == STATUS_OK) {
 		worker_post_message(pipe, WORKER_CONNECT_DONE, NULL, NULL);
 	} else {
@@ -67,10 +71,9 @@ void handle_imap_logged_in(struct imap_connection *imap,
 	}
 }
 
-void handle_imap_cap(struct imap_connection *imap,
+void handle_imap_cap(struct imap_connection *imap, void *data,
 		enum imap_status status, const char *args) {
-	struct worker_pipe *pipe = imap->data;
-	if (!imap->ready) return;
+	struct worker_pipe *pipe = data;
 	if (status != STATUS_OK) {
 		worker_log(L_ERROR, "IMAP error: %s", args);
 		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, NULL);
@@ -88,7 +91,7 @@ void handle_imap_cap(struct imap_connection *imap,
 	} else if (imap->cap->auth_login) {
 		if (imap->uri->username && imap->uri->password) {
 			imap->logged_in = true;
-			imap_send(imap, handle_imap_logged_in, "LOGIN \"%s\" \"%s\"",
+			imap_send(imap, handle_imap_logged_in, pipe, "LOGIN \"%s\" \"%s\"",
 					imap->uri->username, imap->uri->password);
 			// TODO: Escape quotes in user/pass
 		}
@@ -99,12 +102,13 @@ void handle_imap_cap(struct imap_connection *imap,
 	}
 }
 
-void handle_imap_ready(struct imap_connection *imap,
+void handle_imap_ready(struct imap_connection *imap, void *data,
 		enum imap_status status, const char *args) {
-	struct worker_pipe *pipe = imap->data;
+	struct worker_pipe *pipe = data;
 	if (!imap->cap) {
-		imap_send(imap, handle_imap_cap, "CAPABILITY");
+		// TODO: imap_capability function
+		imap_send(imap, handle_imap_cap, pipe, "CAPABILITY");
 		return;
 	}
-	handle_imap_cap((struct imap_connection *)pipe->data, STATUS_OK, NULL);
+	handle_imap_cap(imap, pipe, STATUS_OK, NULL);
 }

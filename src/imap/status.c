@@ -37,20 +37,12 @@ void handle_imap_capability(struct imap_connection *imap, const char *token,
 		free(imap->cap);
 	}
 	imap->cap = cap;
-	if (imap->events.cap) {
-		imap->events.cap(imap, STATUS_OK, _args);
-	}
 	free_flat_list(args);
 }
 
 void handle_imap_OK(struct imap_connection *imap, const char *token,
 		const char *cmd, const char *args) {
-	worker_log(L_DEBUG, "IMAP OK: %s", args);
-	// Handle initial OK
-	if (!imap->ready && imap->events.ready) {
-		imap->ready = true;
-		imap->events.ready(imap, STATUS_OK, args);
-	}
+	// This space intentionally left blank
 }
 
 void handle_imap_status(struct imap_connection *imap, const char *token,
@@ -79,7 +71,14 @@ void handle_imap_status(struct imap_connection *imap, const char *token,
 	} else if (strcmp(cmd, "BYE") == 0) {
 		estatus = STATUS_BYE;
 	}
-	if (strcmp(token, "*") == 0) {
+	bool has_callback = hashtable_contains(imap->pending, token);
+	struct imap_pending_callback *callback = hashtable_del(imap->pending, token);
+	if (has_callback) {
+		if (callback && callback->callback) {
+			callback->callback(imap, callback->data, estatus, args);
+		}
+		free(callback);
+	} else if (strcmp(token, "*") == 0) {
 		if (estatus == STATUS_OK) {
 			handle_imap_OK(imap, token, cmd, args);
 		} else {
@@ -87,14 +86,6 @@ void handle_imap_status(struct imap_connection *imap, const char *token,
 					cmd,args);
 		}
 	} else {
-		bool has_callback = hashtable_contains(imap->pending, token);
-		imap_callback_t callback = hashtable_del(imap->pending, token);
-		if (has_callback) {
-			if (callback) {
-				callback(imap, estatus, args);
-			}
-		} else {
-			worker_log(L_DEBUG, "Got unsolicited status command for %s", token);
-		}
+		worker_log(L_DEBUG, "Got unsolicited status command for %s", token);
 	}
 }

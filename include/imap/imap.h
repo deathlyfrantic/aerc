@@ -31,17 +31,15 @@ enum imap_status {
 
 struct imap_connection;
 
-typedef void (*imap_handler_t)(struct imap_connection *imap,
-        const char *token, const char *cmd, const char *args);
 typedef void (*imap_callback_t)(struct imap_connection *imap,
-        enum imap_status status, const char *args);
+        void *data, enum imap_status status, const char *args);
 
 struct imap_state {
     char *selected_mailbox;
 };
 
 struct imap_connection {
-    bool ready, logged_in;
+    bool logged_in;
     absocket_t *socket;
     enum recv_mode mode;
     char *line;
@@ -49,11 +47,6 @@ struct imap_connection {
     struct pollfd poll[1];
     int next_tag;
     hashtable_t *pending;
-    void *data;
-    struct {
-        imap_callback_t ready;
-        imap_callback_t cap;
-    } events;
     struct imap_capabilities *cap;
     struct imap_state *state;
     struct uri *uri;
@@ -65,12 +58,13 @@ struct imap_pending_callback {
 };
 
 bool imap_connect(struct imap_connection *imap, const char *host,
-        const char *port, bool use_ssl);
+		const char *port, bool use_ssl, imap_callback_t callback, void *data);
 void imap_receive(struct imap_connection *imap);
 void imap_send(struct imap_connection *imap, imap_callback_t callback,
-		const char *fmt, ...);
+		void *data, const char *fmt, ...);
 void imap_close(struct imap_connection *imap);
 void handle_line(struct imap_connection *imap, const char *line);
+struct imap_pending_callback *make_callback(imap_callback_t callback, void *data);
 
 // Handlers
 void init_status_handlers();
@@ -83,6 +77,6 @@ void handle_imap_list(struct imap_connection *imap, const char *token,
 
 // Do...ers?
 void imap_list(struct imap_connection *imap, imap_callback_t callback,
-		const char *refname, const char *boxname);
+		void *data, const char *refname, const char *boxname);
 
 #endif

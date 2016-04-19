@@ -17,6 +17,9 @@
 bool inited = false;
 hashtable_t *internal_handlers = NULL;
 
+typedef void (*imap_handler_t)(struct imap_connection *imap,
+	const char *token, const char *cmd, const char *args);
+
 void handle_line(struct imap_connection *imap, const char *line) {
 	list_t *split = split_string(line, " ");
 	if (split->length <= 2) {
@@ -39,7 +42,7 @@ void handle_line(struct imap_connection *imap, const char *line) {
 }
 
 void imap_send(struct imap_connection *imap, imap_callback_t callback,
-		const char *fmt, ...) {
+		void *data, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	int len = vsnprintf(NULL, 0, fmt, args);
@@ -58,7 +61,7 @@ void imap_send(struct imap_connection *imap, imap_callback_t callback,
 	char *cmd = malloc(len + 1);
 	snprintf(cmd, len + 1, "%s %s\r\n", tag, buf);
 	ab_send(imap->socket, cmd, len);
-	hashtable_set(imap->pending, tag, callback);
+	hashtable_set(imap->pending, tag, make_callback(callback, data));
 	if (strncmp("LOGIN ", buf, 6) != 0) {
 		worker_log(L_DEBUG, "-> %s %s", tag, buf);
 	} else {
@@ -124,8 +127,15 @@ void imap_close(struct imap_connection *imap) {
 	free(imap);
 }
 
+struct imap_pending_callback *make_callback(imap_callback_t callback, void *data) {
+	struct imap_pending_callback *cb = malloc(sizeof(struct imap_pending_callback));
+	cb->callback = callback;
+	cb->data = data;
+	return cb;
+}
+
 bool imap_connect(struct imap_connection *imap, const char *host,
-		const char *port, bool use_ssl) {
+		const char *port, bool use_ssl, imap_callback_t callback, void *data) {
 	imap_init(imap);
 	imap->socket = absocket_new(host, port, use_ssl);
 	if (!imap->socket) {
@@ -133,5 +143,6 @@ bool imap_connect(struct imap_connection *imap, const char *host,
 	}
 	imap->poll[0].fd = imap->socket->basefd;
 	imap->poll[0].events = POLLIN;
+	hashtable_set(imap->pending, "*", make_callback(callback, data));
 	return true;
 }
