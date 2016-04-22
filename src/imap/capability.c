@@ -38,9 +38,7 @@ void handle_imap_capability(struct imap_connection *imap, const char *token,
 			}
 		}
 	}
-	if (imap->cap) {
-		free(imap->cap);
-	}
+	free(imap->cap);
 	imap->cap = cap;
 	free_flat_list(args);
 }

@@ -81,12 +81,12 @@ bool parse_uri(struct uri *res, const char *src) {
 }
 
 void uri_free(struct uri *uri) {
-	if (uri->scheme) free(uri->scheme);
-	if (uri->username) free(uri->username);
-	if (uri->password) free(uri->password);
-	if (uri->hostname) free(uri->hostname);
-	if (uri->port) free(uri->port);
-	if (uri->path) free(uri->path);
-	if (uri->query) free(uri->query);
-	if (uri->fragment) free(uri->fragment);
+	free(uri->scheme);
+	free(uri->username);
+	free(uri->password);
+	free(uri->hostname);
+	free(uri->port);
+	free(uri->path);
+	free(uri->query);
+	free(uri->fragment);
 }
