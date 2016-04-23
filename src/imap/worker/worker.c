@@ -16,7 +16,9 @@ struct action_handler {
 
 struct action_handler handlers[] = {
 	{ WORKER_CONNECT, handle_worker_connect },
+#ifdef USE_OPENSSL
 	{ WORKER_CONNECT_CERT_OKAY, handle_worker_cert_okay }
+#endif
 };
 
 void handle_message(struct worker_pipe *pipe, struct worker_message *message) {

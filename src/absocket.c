@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
+#include <assert.h>
 #ifdef USE_OPENSSL
 #include <openssl/ssl.h>
 #include <openssl/x509.h>
@@ -162,7 +163,11 @@ void absocket_free(absocket_t *socket) {
 
 ssize_t ab_recv(absocket_t *socket, void *buffer, size_t len) {
 	if (socket->use_ssl) {
+#ifdef USE_OPENSSL
 		return SSL_read(socket->ssl, buffer, len);
+#else
+		assert(false);
+#endif
 	} else {
 		return recv(socket->basefd, buffer, len, 0);
 	}
@@ -170,7 +175,11 @@ ssize_t ab_recv(absocket_t *socket, void *buffer, size_t len) {
 
 ssize_t ab_send(absocket_t *socket, void *buffer, size_t len) {
 	if (socket->use_ssl) {
+#ifdef USE_OPENSSL
 		return SSL_write(socket->ssl, buffer, len);
+#else
+		assert(false);
+#endif
 	} else {
 		return send(socket->basefd, buffer, len, 0);
 	}

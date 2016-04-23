@@ -13,9 +13,13 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
 )
 
-find_package(OpenSSL)
-if(OPENSSL_FOUND)
-    add_definitions(-DUSE_OPENSSL)
+option(enable-openssl "Enables OpenSSL support" YES)
+
+if(enable-openssl)
+    find_package(OpenSSL)
+    if(OPENSSL_FOUND)
+        add_definitions(-DUSE_OPENSSL)
+    endif()
 endif()
 
 FILE(GLOB src ${PROJECT_SOURCE_DIR}/src/*.c)

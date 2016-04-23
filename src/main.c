@@ -24,10 +24,12 @@ void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg)
 	case WORKER_CONNECT_ERROR:
 		fprintf(stderr, "Error connecting to mail service.\n");
 		break;
+#ifdef USE_OPENSSL
 	case WORKER_CONNECT_CERT_CHECK:
 		fprintf(stderr, "TODO: interactive certificate check\n");
 		worker_post_action(pipe, WORKER_CONNECT_CERT_OKAY, msg, NULL);
 		break;
+#endif
 	default:
 		// No-op
 		break;
