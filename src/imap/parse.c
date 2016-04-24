@@ -64,6 +64,16 @@ static char *parse_atom(const char **str) {
 	}
 }
 
+static char *parse_status_response(const char **str) {
+	char *end = strchr(*str, ']');
+	int len = (end - *str) - 1;
+	char *resp = malloc(len + 1);
+	strncpy(resp, *str + 1, len);
+	resp[len] = '\0';
+	*str += len + 2;
+	return resp;
+}
+
 static int _imap_parse_args(const char **str, imap_arg_t *args) {
 	assert(args && str);
 	int remaining = 0;
@@ -77,6 +87,10 @@ static int _imap_parse_args(const char **str, imap_arg_t *args) {
 			if (remaining > 0) {
 				return remaining;
 			}
+		} else if (**str == '[') {
+			// Parse status response
+			args->type = IMAP_RESPONSE;
+			args->str = parse_status_response(str);
 		} else if (**str == '(') {
 			// Parse list
 			args->type = IMAP_LIST;

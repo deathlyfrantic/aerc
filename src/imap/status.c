@@ -16,7 +16,6 @@ void handle_imap_OK(struct imap_connection *imap, const char *token,
 
 void handle_imap_status(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args) {
-	// TODO: IMAP_STATUS type?
 	if (args->type == IMAP_RESPONSE) {
 		// Includes optional status response
 		const char *prefix = "* ";
