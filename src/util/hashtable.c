@@ -1,3 +1,6 @@
+/*
+ * util/hashtable.c - implements a generic hashtable
+ */
 #include "util/hashtable.h"
 #include <stdlib.h>
 

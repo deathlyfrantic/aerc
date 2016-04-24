@@ -30,7 +30,6 @@ struct imap_arg {
 typedef struct imap_arg imap_arg_t;
 
 void handle_line(struct imap_connection *imap, const char *line);
-struct imap_pending_callback *make_callback(imap_callback_t callback, void *data);
 
 void init_status_handlers();
 void handle_imap_status(struct imap_connection *imap, const char *token,

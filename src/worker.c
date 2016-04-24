@@ -1,3 +1,6 @@
+/*
+ * worker.c - support code for mail workers
+ */
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>

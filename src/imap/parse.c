@@ -1,3 +1,6 @@
+/*
+ * imap/parse.c - parser for IMAP argument strings
+ */
 #define _POSIX_C_SOURCE 200809L
 #include "internal/imap.h"
 #include <string.h>

@@ -32,16 +32,13 @@ void abs_init() {
 
 #ifdef USE_OPENSSL
 
-bool ab_ssl_negotiate(absocket_t *abs) {
+static bool ab_ssl_negotiate(absocket_t *abs) {
 	/*
 	 * This function performs SSL negotiation over the given socket.
 	 */
 	SSL_set_mode(abs->ssl, SSL_MODE_AUTO_RETRY);
 	int err;
 	if ((err = SSL_connect(abs->ssl)) != 1) {
-		/*
-		 * If we failed to connect, determine the appropriate error to log.
-		 */
 		const char *errmsg;
 		switch (SSL_get_error(abs->ssl, err))
 		{
@@ -75,7 +72,7 @@ bool ab_ssl_negotiate(absocket_t *abs) {
 	return true;
 }
 
-bool ab_ssl_connect(absocket_t *abs) {
+static bool ab_ssl_connect(absocket_t *abs) {
 	/*
 	 * Initializes and configures the SSL context, then runs the socket through
 	 * ab_ssl_negotiate and we're golden. This function assumes that the

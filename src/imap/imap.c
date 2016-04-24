@@ -1,3 +1,6 @@
+/*
+ * imap/imap.c - responsible for opening and maintaining the IMAP socket
+ */
 #define _POSIX_C_SOURCE 201112LL
 #include <errno.h>
 #include <stdio.h>
@@ -23,6 +26,17 @@ hashtable_t *internal_handlers = NULL;
  */
 typedef void (*imap_handler_t)(struct imap_connection *imap,
 	const char *token, const char *cmd, imap_arg_t *args);
+
+static struct imap_pending_callback *make_callback(imap_callback_t callback, void *data) {
+	/* 
+	 * We need to keep the data passed in by the user around so we can
+	 * eventually pass it back to them when we invoke their callback.
+	 */
+	struct imap_pending_callback *cb = malloc(sizeof(struct imap_pending_callback));
+	cb->callback = callback;
+	cb->data = data;
+	return cb;
+}
 
 void handle_line(struct imap_connection *imap, const char *line) {
 	/*
@@ -199,17 +213,6 @@ void imap_close(struct imap_connection *imap) {
 	absocket_free(imap->socket);
 	free(imap->line);
 	free(imap);
-}
-
-struct imap_pending_callback *make_callback(imap_callback_t callback, void *data) {
-	/* 
-	 * We need to keep the data passed in by the user around so we can
-	 * eventually pass it back to them when we invoke their callback.
-	 */
-	struct imap_pending_callback *cb = malloc(sizeof(struct imap_pending_callback));
-	cb->callback = callback;
-	cb->data = data;
-	return cb;
 }
 
 bool imap_connect(struct imap_connection *imap, const struct uri *uri,

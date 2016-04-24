@@ -1,3 +1,6 @@
+/*
+ * imap/worker/worker.c - IMAP worker main thread and action dispatcher
+ */
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
 #include <time.h>

@@ -1,3 +1,6 @@
+/*
+ * util/list.c - implements a generic expandable list
+ */
 #include "util/list.h"
 #include <stdio.h>
 #include <stdlib.h>

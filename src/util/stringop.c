@@ -1,3 +1,6 @@
+/*
+ * util/stringop.c - string manipulation utilities
+ */
 #define _POSIX_C_SOURCE 201112LL
 #include <stdlib.h>
 #include <stdio.h>

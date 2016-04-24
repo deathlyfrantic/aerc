@@ -1,3 +1,6 @@
+/*
+ * imap/list.c - issues and handles IMAP LIST commands
+ */
 #include "internal/imap.h"
 #include "util/list.h"
 #include "util/stringop.h"

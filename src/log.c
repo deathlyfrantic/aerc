@@ -1,3 +1,6 @@
+/*
+ * log.c - worker debug log handler
+ */
 #define _POSIX_C_SOURCE 200809L
 #include "log.h"
 #include "worker.h"

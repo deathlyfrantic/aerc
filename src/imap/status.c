@@ -1,3 +1,6 @@
+/*
+ * imap/status.c - handles IMAP status commands and IMAP status responses
+ */
 #define _POSIX_C_SOURCE 201112LL
 #include <stdio.h>
 #include <stdlib.h>
