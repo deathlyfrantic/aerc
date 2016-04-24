@@ -17,7 +17,13 @@ void handle_imap_OK(struct imap_connection *imap, const char *token,
 void handle_imap_status(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args) {
 	if (args->type == IMAP_RESPONSE) {
-		// Includes optional status response
+		/*
+		 * We have a status response included in this command. We'll produce a
+		 * fake "command" and send it through the line handler again. We
+		 * allocate space for the status response plus the prefix, then populate
+		 * the buffer and pass it to handle_line and continue with status
+		 * handling.
+		 */
 		const char *prefix = "* ";
 		int len = strlen(args->str) + strlen(prefix);
 		char *status = malloc(len + 1);
@@ -39,6 +45,13 @@ void handle_imap_status(struct imap_connection *imap, const char *token,
 	} else if (strcmp(cmd, "BYE") == 0) {
 		estatus = STATUS_BYE;
 	}
+	/*
+	 * STATUS commands are usually sent by the server in response to a command
+	 * we asked it to do earlier. We passed in a tag with this command, and the
+	 * server passes that tag back with the STATUS command to tell us it's done.
+	 * The pending callbacks hashtable is keyed on the tag, so we pull the
+	 * callback out and invoke it based on that tag.
+	 */
 	bool has_callback = hashtable_contains(imap->pending, token);
 	struct imap_pending_callback *callback = hashtable_del(imap->pending, token);
 	if (has_callback) {
@@ -47,6 +60,14 @@ void handle_imap_status(struct imap_connection *imap, const char *token,
 		}
 		free(callback);
 	} else if (strcmp(token, "*") == 0) {
+		/*
+		 * Sometimes, though, the tag will be *, which is used for meta commands
+		 * or passively informing the client of activity or updates to their
+		 * state. Note that on connection we receive a STATUS message prefixed
+		 * with * to indicate that the server is ready - we register a special
+		 * callback for this case and it's handled by the earlier branch of this
+		 * if statement.
+		 */
 		if (estatus == STATUS_OK) {
 			handle_imap_OK(imap, token, cmd, args);
 		} else {

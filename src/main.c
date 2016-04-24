@@ -17,6 +17,9 @@
 #include "log.h"
 
 void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg) {
+	/*
+	 * Handle incoming messages from a worker. This is pretty bare right now.
+	 */
 	switch (msg->type) {
 	case WORKER_CONNECT_DONE:
 		fprintf(stderr, "Connection complete.\n");
@@ -37,6 +40,10 @@ void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg)
 }
 
 int main(int argc, char **argv) {
+	/*
+	 * UI thread. Not much happening here yet.
+	 */
+
 	init_log(L_DEBUG); // TODO: Customizable
 	abs_init();
 	struct worker_pipe *worker_pipe = worker_pipe_new();

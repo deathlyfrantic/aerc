@@ -8,6 +8,12 @@
 #include "urlparse.h"
 
 bool percent_decode(char *s) {
+	/*
+	 * Percent encoded strings (RFC 1738, 2.2) use a percent symbol followed by
+	 * two hex digits to represent certain characters. This function replaces
+	 * the percent encoded characters with the actual characters they represent
+	 * in-place.
+	 */
 	if (!s) return true;
 	while (*s) {
 		if (*s == '+') {
@@ -27,8 +33,18 @@ bool percent_decode(char *s) {
 }
  
 bool parse_uri(struct uri *res, const char *src) {
+	/*
+	 * URIs take the general form of:
+	 *
+	 * 	protocol:[//][user[:password]@]hostname[:port][/path][?query][#fragment]
+	 *
+	 * This function only concerns itself with the protocol, user, password,
+	 * hostname, and port. It returns true if the URI is valid.
+	 */
 	memset(res, 0, sizeof(struct uri));
-	// Start with scheme
+	/*
+	 * First, we parse the scheme.
+	 */
 	const char *cur = src, *start = src;
 	while (*cur && *cur != ':') {
 		++cur;
@@ -38,45 +54,63 @@ bool parse_uri(struct uri *res, const char *src) {
 	strncpy(res->scheme, start, cur - start);
 	res->scheme[cur - start] = '\0';
 	++cur;
+	/*
+	 * The // is optional.
+	 */
 	if (*cur == '/') cur++;
-	if (*cur == '/') cur++; // Skip optional //
-
-	// Extract user/pass/domain/port string
+	if (*cur == '/') cur++;
+	/*
+	 * Next, we extract a string that contains the user, pass, domain, and port.
+	 * This function doesn't parse the path/query/fragment, but we do tolerate
+	 * it.
+	 */
 	if (!*cur) return false;
-	char *stop = "/?#\0";
+	char *stop = "/?#\0"; // Any of these chararacters are stopping points
 	start = cur;
 	while (*cur && !strchr(stop, *cur)) {
 		++cur;
 	}
+	/*
+	 * Measure/allocate/copy some the hostname string, which will (for now)
+	 * include the user/pass/port as well.
+	 */
 	res->hostname = malloc(cur - start + 1);
 	strncpy(res->hostname, start, cur - start);
 	res->hostname[cur - start] = '\0';
 	if (strchr(res->hostname, '@')) {
-		// Username present
+		/*
+		 * A username/pass string is present in the hostname string. Extract it.
+		 */
 		char *at = strchr(res->hostname, '@');
 		*at = '\0';
 		res->username = res->hostname;
 		res->hostname = strdup(at + 1);
 		if (strchr(res->username, ':')) {
-			// Password present
+			/*
+			 * A password is present in the username/pass string. Extract it.
+			 */
 			at = strchr(res->username, ':');
 			*at = '\0';
 			res->password = strdup(at + 1);
 		}
 	}
 	if (strchr(res->hostname, ':')) {
-		// Port present
+		/*
+		 * A port is present in the hostname string. Extract it.
+		 */
 		char *at = strchr(res->hostname, ':');
 		*at = '\0';
 		res->port = strdup(at + 1);
 	}
+	/*
+	 * Percent decode everything and return.
+	 */
 	if (!percent_decode(res->hostname)) return false;
 	if (!percent_decode(res->username)) return false;
 	if (!percent_decode(res->password)) return false;
 	if (!percent_decode(res->port)) return false;
 	if (!*cur) return true;
 
-	// TODO: Extract path/query/fragment if anyone cares
 	return false;
 }
 

@@ -8,6 +8,7 @@
 #endif
 #include <unistd.h>
 #include <stdbool.h>
+#include "urlparse.h"
 
 /*
  * Abstract socket utility, handles adding SSL if necessary.
@@ -25,7 +26,7 @@ struct absocket {
 typedef struct absocket absocket_t;
 
 void abs_init();
-absocket_t *absocket_new(const char *host, const char *port, bool use_ssl);
+absocket_t *absocket_new(const struct uri *uri, bool use_ssl);
 void absocket_free(absocket_t *socket);
 ssize_t ab_recv(absocket_t *socket, void *buffer, size_t len);
 ssize_t ab_send(absocket_t *socket, void *buffer, size_t len);

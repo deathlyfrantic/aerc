@@ -36,6 +36,10 @@ void reset_log_level(void) {
 	l = loglevel_default;
 }
 
+/*
+ * This function has a different signature if compiled in DEBUG mode - we
+ * include the filename and line number in that case.
+ */
 #ifndef NDEBUG
 void _worker_log(const char *filename, int line, enum log_level level,
 		const char* format, ...) {

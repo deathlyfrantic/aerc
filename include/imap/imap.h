@@ -56,8 +56,8 @@ struct imap_connection {
     struct uri *uri;
 };
 
-bool imap_connect(struct imap_connection *imap, const char *host,
-		const char *port, bool use_ssl, imap_callback_t callback, void *data);
+bool imap_connect(struct imap_connection *imap, const struct uri *uri,
+		bool use_ssl, imap_callback_t callback, void *data);
 void imap_receive(struct imap_connection *imap);
 void imap_send(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *fmt, ...);
