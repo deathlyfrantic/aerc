@@ -62,7 +62,7 @@ void handle_worker_cert_okay(struct worker_pipe *pipe, struct worker_message *me
 }
 
 void handle_imap_logged_in(struct imap_connection *imap, void *data,
-		enum imap_status status,const char *args) {
+		enum imap_status status, const char *args) {
 	struct worker_pipe *pipe = data;
 	if (status == STATUS_OK) {
 		worker_post_message(pipe, WORKER_CONNECT_DONE, NULL, NULL);

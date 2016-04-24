@@ -8,7 +8,6 @@ void imap_list(struct imap_connection *imap, imap_callback_t callback,
 }
 
 void handle_imap_list(struct imap_connection *imap, const char *token,
-		const char *cmd, const char *_args) {
-	list_t *args = split_string(_args, " ");
-	free_flat_list(args);
+		const char *cmd, imap_arg_t *args) {
+	// TODO
 }

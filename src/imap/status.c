@@ -10,23 +10,23 @@
 #include "log.h"
 
 void handle_imap_OK(struct imap_connection *imap, const char *token,
-		const char *cmd, const char *args) {
+		const char *cmd, imap_arg_t *args) {
 	// This space intentionally left blank
 }
 
 void handle_imap_status(struct imap_connection *imap, const char *token,
-		const char *cmd, const char *args) {
-	if (args[0] == '[' && strchr(args, ']')) {
+		const char *cmd, imap_arg_t *args) {
+	// TODO: IMAP_STATUS type?
+	if (args->type == IMAP_RESPONSE) {
 		// Includes optional status response
 		const char *prefix = "* ";
-		int i = strchr(args + 1, ']') - args - 1;
-		char *status = malloc(i + 1 + 2);
+		int len = strlen(args->str) + strlen(prefix);
+		char *status = malloc(len + 1);
 		strcpy(status, prefix);
-		strncpy(status + 2, args + 1, i);
-		status[i + 2] = '\0';
-		args = args + 3 + i;
+		strcat(status, args->str);
 		handle_line(imap, status);
 		free(status);
+		args = args->next;
 	}
 	enum imap_status estatus;
 	if (strcmp(cmd, "OK") == 0) {
@@ -44,15 +44,14 @@ void handle_imap_status(struct imap_connection *imap, const char *token,
 	struct imap_pending_callback *callback = hashtable_del(imap->pending, token);
 	if (has_callback) {
 		if (callback && callback->callback) {
-			callback->callback(imap, callback->data, estatus, args);
+			callback->callback(imap, callback->data, estatus, args->original);
 		}
 		free(callback);
 	} else if (strcmp(token, "*") == 0) {
 		if (estatus == STATUS_OK) {
 			handle_imap_OK(imap, token, cmd, args);
 		} else {
-			worker_log(L_DEBUG, "Got unhandled status command %s %s",
-					cmd,args);
+			worker_log(L_DEBUG, "Got unhandled status command %s", cmd);
 		}
 	} else {
 		worker_log(L_DEBUG, "Got unsolicited status command for %s", token);

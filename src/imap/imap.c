@@ -18,7 +18,7 @@ bool inited = false;
 hashtable_t *internal_handlers = NULL;
 
 typedef void (*imap_handler_t)(struct imap_connection *imap,
-	const char *token, const char *cmd, const char *args);
+	const char *token, const char *cmd, imap_arg_t *args);
 
 void handle_line(struct imap_connection *imap, const char *line) {
 	list_t *split = split_string(line, " ");
@@ -33,8 +33,11 @@ void handle_line(struct imap_connection *imap, const char *line) {
 	if (handler) {
 		char *joined = join_args((char **)(split->items + 2),
 				split->length - 2);
-		handler(imap, split->items[0], split->items[1], joined);
+		imap_arg_t *arg = calloc(1, sizeof(imap_arg_t));
+		imap_parse_args(joined, arg);
+		handler(imap, split->items[0], split->items[1], arg);
 		free(joined);
+		imap_arg_free(arg);
 	} else {
 		worker_log(L_DEBUG, "Recieved unknown IMAP command: %s", line);
 	}

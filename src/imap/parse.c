@@ -116,7 +116,20 @@ static int _imap_parse_args(const char **str, imap_arg_t *args) {
 }
 
 int imap_parse_args(const char *str, imap_arg_t *args) {
-	return _imap_parse_args(&str, args);
+	int r = _imap_parse_args(&str, args);
+	args->original = strdup(str);
+	return r;
+}
+
+void imap_arg_free(imap_arg_t *args) {
+	while (args) {
+		free(args->original);
+		free(args->str);
+		imap_arg_free(args->list);
+		imap_arg_t *_ = args;
+		args = args->next;
+		free(_);
+	}
 }
 
 void print_imap_args(imap_arg_t *args, int indent) {

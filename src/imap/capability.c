@@ -15,10 +15,7 @@ void imap_capability(struct imap_connection *imap, imap_callback_t callback,
 }
 
 void handle_imap_capability(struct imap_connection *imap, const char *token,
-		const char *cmd, const char *_args) {
-	list_t *args = split_string(_args, " ");
-	worker_log(L_DEBUG, "Server capabilities: %s", _args);
-
+		const char *cmd, imap_arg_t *args) {
 	struct imap_capabilities *cap = calloc(1,
 			sizeof(struct imap_capabilities));
 
@@ -31,14 +28,17 @@ void handle_imap_capability(struct imap_connection *imap, const char *token,
 		{ "IDLE", &cap->idle }
 	};
 
-	for (int i = 0; i < args->length; ++i) {
-		for (size_t j = 0; j < sizeof(ptrs) / (sizeof(void*) * 2); ++j) {
-			if (strcmp(ptrs[j].name, args->items[i]) == 0) {
-				*ptrs[j].ptr = true;
+	while (args) {
+		if (args->type == IMAP_STRING || args->type == IMAP_ATOM) {
+			for (size_t j = 0; j < sizeof(ptrs) / (sizeof(void*) * 2); ++j) {
+				if (strcmp(ptrs[j].name, args->str) == 0) {
+					*ptrs[j].ptr = true;
+				}
 			}
 		}
+		args = args->next;
 	}
+
 	free(imap->cap);
 	imap->cap = cap;
-	free_flat_list(args);
 }
