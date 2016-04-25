@@ -49,8 +49,7 @@ void handle_line(struct imap_connection *imap, const char *line) {
 		worker_log(L_DEBUG, "Got malformed IMAP command: %s", line);
 		return;
 	}
-	worker_log(L_DEBUG, "<- %s %s", (char *)split->items[0],
-			(char *)split->items[1]);
+	worker_log(L_DEBUG, "<- %s", line);
 	/*
 	 * We grab a handler based on the IMAP command in question. IMAP commands
 	 * are formatted like this:
@@ -193,6 +192,7 @@ void imap_init(struct imap_connection *imap) {
 	imap->line_size = BUFFER_SIZE;
 	imap->next_tag = 1;
 	imap->pending = create_hashtable(128, hash_string);
+	imap->mailboxes = create_list();
 	if (internal_handlers == NULL) {
 		/*
 		 * Internal IMAP handlers are stored in a hashtable keyed on the IMAP

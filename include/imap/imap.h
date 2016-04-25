@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <poll.h>
 #include <stdarg.h>
+#include "util/list.h"
 #include "util/hashtable.h"
 #include "urlparse.h"
 #include "absocket.h"
@@ -38,8 +39,9 @@ struct imap_connection;
 typedef void (*imap_callback_t)(struct imap_connection *imap,
         void *data, enum imap_status status, const char *args);
 
-struct imap_state {
-    char *selected_mailbox;
+struct mailbox {
+    list_t *flags;
+    char *name;
 };
 
 struct imap_connection {
@@ -54,6 +56,7 @@ struct imap_connection {
     struct imap_capabilities *cap;
     struct imap_state *state;
     struct uri *uri;
+    list_t *mailboxes;
 };
 
 bool imap_connect(struct imap_connection *imap, const struct uri *uri,

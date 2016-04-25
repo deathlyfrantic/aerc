@@ -26,9 +26,21 @@ void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg)
 	switch (msg->type) {
 	case WORKER_CONNECT_DONE:
 		fprintf(stderr, "Connection complete.\n");
+		worker_post_action(pipe, WORKER_LIST, NULL, NULL);
 		break;
 	case WORKER_CONNECT_ERROR:
 		fprintf(stderr, "Error connecting to mail service.\n");
+		break;
+	case WORKER_LIST_DONE:
+		fprintf(stderr, "Mailboxes available:\n");
+		list_t *mailboxes = msg->data;
+		for (int i = 0; i < mailboxes->length; ++i) {
+			struct aerc_mailbox *mbox = mailboxes->items[i];
+			fprintf(stderr, "%s\n", mbox->name);
+		}
+		break;
+	case WORKER_LIST_ERROR:
+		fprintf(stderr, "Error listing mailboxes!\n");
 		break;
 #ifdef USE_OPENSSL
 	case WORKER_CONNECT_CERT_CHECK:

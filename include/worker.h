@@ -1,6 +1,7 @@
 #ifndef _WORKER_H
 #define _WORKER_H
 #include "util/aqueue.h"
+#include "util/list.h"
 #ifdef USE_OPENSSL
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
@@ -27,7 +28,6 @@ enum worker_message_type {
 #endif
     /* Listing */
     WORKER_LIST,
-    WORKER_LIST_ITEM,
     WORKER_LIST_DONE,
     WORKER_LIST_ERROR
 };
@@ -52,6 +52,11 @@ struct cert_check_message {
     X509 *cert;
 };
 #endif
+
+struct aerc_mailbox {
+    char *name;
+    list_t *flags;
+};
 
 /* Misc */
 struct worker_pipe *worker_pipe_new();
