@@ -36,14 +36,10 @@ void handle_imap_capability(struct imap_connection *imap, const char *token,
 		{ "IDLE", &cap->idle }
 	};
 
-	/* For each argument... */
 	while (args) {
 		if (args->type == IMAP_STRING || args->type == IMAP_ATOM) {
-			/* if it's an atom or string, iterate over aerc's capability list... */
 			for (size_t j = 0; j < sizeof(ptrs) / (sizeof(void*) * 2); ++j) {
-				/* and compare our capability with the server's capability.. */
 				if (strcmp(ptrs[j].name, args->str) == 0) {
-					/* and set it to true if the server provides it */
 					*ptrs[j].ptr = true;
 				}
 			}
