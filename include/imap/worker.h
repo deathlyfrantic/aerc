@@ -9,5 +9,6 @@ void *imap_worker(void *_pipe);
 void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *message);
 void handle_worker_cert_okay(struct worker_pipe *pipe, struct worker_message *message);
 void handle_worker_list(struct worker_pipe *pipe, struct worker_message *message);
+void handle_worker_select_mailbox(struct worker_pipe *pipe, struct worker_message *message);
 
 #endif

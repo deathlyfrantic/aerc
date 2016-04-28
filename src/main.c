@@ -34,9 +34,16 @@ void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg)
 	case WORKER_LIST_DONE:
 		fprintf(stderr, "Mailboxes available:\n");
 		list_t *mailboxes = msg->data;
+		bool have_inbox = false;
 		for (int i = 0; i < mailboxes->length; ++i) {
 			struct aerc_mailbox *mbox = mailboxes->items[i];
 			fprintf(stderr, "%s\n", mbox->name);
+			if (strcmp(mbox->name, "INBOX") == 0) {
+				have_inbox = true;
+			}
+		}
+		if (have_inbox) {
+			worker_post_action(pipe, WORKER_SELECT_MAILBOX, NULL, strdup("INBOX"));
 		}
 		break;
 	case WORKER_LIST_ERROR:

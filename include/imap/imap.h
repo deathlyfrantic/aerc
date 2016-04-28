@@ -70,5 +70,7 @@ void imap_list(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *refname, const char *boxname);
 void imap_capability(struct imap_connection *imap, imap_callback_t callback,
         void *data);
+void imap_select(struct imap_connection *imap, imap_callback_t callback,
+		void *data, const char *mailbox);
 
 #endif

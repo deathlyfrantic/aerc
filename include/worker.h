@@ -29,7 +29,9 @@ enum worker_message_type {
     /* Listing */
     WORKER_LIST,
     WORKER_LIST_DONE,
-    WORKER_LIST_ERROR
+    WORKER_LIST_ERROR,
+    /* Selection */
+    WORKER_SELECT_MAILBOX,
 };
 
 struct worker_pipe {

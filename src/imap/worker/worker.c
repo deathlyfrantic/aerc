@@ -20,6 +20,7 @@ struct action_handler {
 struct action_handler handlers[] = {
 	{ WORKER_CONNECT, handle_worker_connect },
 	{ WORKER_LIST, handle_worker_list },
+	{ WORKER_SELECT_MAILBOX, handle_worker_select_mailbox },
 #ifdef USE_OPENSSL
 	{ WORKER_CONNECT_CERT_OKAY, handle_worker_cert_okay }
 #endif

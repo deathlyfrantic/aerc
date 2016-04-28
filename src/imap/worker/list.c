@@ -51,7 +51,7 @@ void imap_delimiter_callback(struct imap_connection *imap,
 	 * Now that we have a delimiter, we can list *
 	 */
 	if (status == STATUS_OK) {
-		imap_list(imap, imap_list_callback, data, "", "*");
+		imap_list(imap, imap_list_callback, data, "", "%");
 	} else {
 		worker_post_message(data->pipe, WORKER_LIST_ERROR, data->message, NULL);
 		free(data);
