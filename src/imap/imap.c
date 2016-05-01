@@ -27,7 +27,7 @@ hashtable_t *internal_handlers = NULL;
 typedef void (*imap_handler_t)(struct imap_connection *imap,
 	const char *token, const char *cmd, imap_arg_t *args);
 
-static struct imap_pending_callback *make_callback(imap_callback_t callback, void *data) {
+struct imap_pending_callback *make_callback(imap_callback_t callback, void *data) {
 	/* 
 	 * We need to keep the data passed in by the user around so we can
 	 * eventually pass it back to them when we invoke their callback.
@@ -206,6 +206,8 @@ void imap_init(struct imap_connection *imap) {
 		hashtable_set(internal_handlers, "BYE", handle_imap_status);
 		hashtable_set(internal_handlers, "CAPABILITY", handle_imap_capability);
 		hashtable_set(internal_handlers, "LIST", handle_imap_list);
+		hashtable_set(internal_handlers, "FLAGS", handle_imap_flags);
+		hashtable_set(internal_handlers, "PERMANENTFLAGS", handle_imap_flags);
 	}
 }
 

@@ -44,6 +44,7 @@ list_t *split_string(const char *str, const char *delims) {
 }
 
 void free_flat_list(list_t *list) {
+	if (!list) return;
 	/*
 	 * Frees a list_t and each item inside of it.
 	 */

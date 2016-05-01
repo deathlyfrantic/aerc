@@ -25,7 +25,8 @@ struct imap_capabilities {
 };
 
 enum imap_status {
-    STATUS_OK, STATUS_NO, STATUS_BAD, STATUS_PREAUTH, STATUS_BYE
+    STATUS_OK, STATUS_NO, STATUS_BAD, STATUS_PREAUTH, STATUS_BYE,
+    STATUS_PRE_ERROR // Returned when our code anticipates an error
 };
 
 enum recv_mode {
@@ -39,9 +40,18 @@ struct imap_connection;
 typedef void (*imap_callback_t)(struct imap_connection *imap,
         void *data, enum imap_status status, const char *args);
 
+struct mailbox_flag {
+    char *name;
+    bool permanent;
+};
+
 struct mailbox {
     list_t *flags;
+    list_t *messages;
     char *name;
+    int exists, recent, unseen;
+    int nextuid; // Predicted, not definite
+    bool read_write;
 };
 
 struct imap_connection {
@@ -57,6 +67,7 @@ struct imap_connection {
     struct imap_state *state;
     struct uri *uri;
     list_t *mailboxes;
+    char *selected;
 };
 
 bool imap_connect(struct imap_connection *imap, const struct uri *uri,

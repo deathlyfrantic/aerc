@@ -14,16 +14,17 @@ void imap_list(struct imap_connection *imap, imap_callback_t callback,
 
 void handle_imap_list(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args) {
-	struct mailbox *mbox = malloc(sizeof(struct mailbox));
-	mbox->flags = create_list();
 	imap_arg_t *flags = args->list;
+	//const char *delim = args->next->str;
+	const char *name = args->next->next->str;
+
+	struct mailbox *mbox = get_or_make_mailbox(imap, name);
 	while (flags) {
 		if (flags->type == IMAP_ATOM) {
-			list_add(mbox->flags, strdup(flags->str));
+			struct mailbox_flag *flag = calloc(1, sizeof(struct mailbox_flag));
+			flag->name = strdup(flags->str);
+			list_add(mbox->flags, flag);
 		}
 		flags = flags->next;
 	}
-	args = args->next->next;
-	mbox->name = strdup(args->str);
-	list_add(imap->mailboxes, mbox);
 }

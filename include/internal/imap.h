@@ -38,6 +38,8 @@ void handle_imap_capability(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args);
 void handle_imap_list(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args);
+void handle_imap_flags(struct imap_connection *imap, const char *token,
+		const char *cmd, imap_arg_t *args);
 
 /* Parses an IMAP argument string and returns the number of characters
  * necessary to complete parsing (if the string doesn't represent a complete
@@ -46,5 +48,15 @@ void handle_imap_list(struct imap_connection *imap, const char *token,
 int imap_parse_args(const char *str, imap_arg_t *args);
 void imap_arg_free(imap_arg_t *args);
 void print_imap_args(imap_arg_t *args, int indent);
+
+/*
+ * Utility functions
+ */
+struct imap_pending_callback *make_callback(imap_callback_t callback, void *data);
+struct mailbox *get_mailbox(struct imap_connection *imap, const char *name);
+struct mailbox *get_or_make_mailbox(struct imap_connection *imap,
+		const char *name);
+struct mailbox_flag *mailbox_get_flag(struct imap_connection *imap,
+        const char *mbox, const char *flag);
 
 #endif
