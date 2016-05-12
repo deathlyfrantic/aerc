@@ -61,6 +61,21 @@ void handle_line(struct imap_connection *imap, const char *line) {
 	 * thing, but can often be * to provide updates to aerc's internal state, or
 	 * meta responses. Our hashtable is keyed on the command string.
 	 */
+	char *end = split->items[1];
+	strtol(split->items[1], &end, 10);
+	if (!*end) {
+		/*
+		 * Some commands (namely EXISTS and RECENT) are formatted like so:
+		 *
+		 * [tag] [arg] [command] [...]
+		 *
+		 * Which is fucking stupid. But we handle that here by checking if the
+		 * command name is a number and then rearranging it.
+		 */
+		void *temp = split->items[1];
+		split->items[1] = split->items[2];
+		split->items[2] = temp;
+	}
 	imap_handler_t handler = hashtable_get(internal_handlers, split->items[1]);
 	if (handler) {
 		/*
@@ -208,6 +223,9 @@ void imap_init(struct imap_connection *imap) {
 		hashtable_set(internal_handlers, "LIST", handle_imap_list);
 		hashtable_set(internal_handlers, "FLAGS", handle_imap_flags);
 		hashtable_set(internal_handlers, "PERMANENTFLAGS", handle_imap_flags);
+		hashtable_set(internal_handlers, "EXISTS", handle_imap_existsunseenrecent);
+		hashtable_set(internal_handlers, "UNSEEN", handle_imap_existsunseenrecent);
+		hashtable_set(internal_handlers, "RECENT", handle_imap_existsunseenrecent);
 	}
 }
 

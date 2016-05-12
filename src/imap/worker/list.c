@@ -20,9 +20,7 @@ struct list_data {
 void imap_list_callback(struct imap_connection *imap,
         void *_data, enum imap_status status, const char *args) {
 	/*
-	 * Listing complete. Let the main thread know.
-	 *
-	 * TODO: Pass the list along to the main thread, too.
+	 * Listing complete. Process some things and let the main thread know.
 	 */
 	struct list_data *data = _data;
 	if (status == STATUS_OK) {
@@ -44,28 +42,10 @@ void imap_list_callback(struct imap_connection *imap,
 	free(data);
 }
 
-void imap_delimiter_callback(struct imap_connection *imap,
-        void *_data, enum imap_status status, const char *args) {
-	struct list_data *data = _data;
-	/*
-	 * Now that we have a delimiter, we can list *
-	 */
-	if (status == STATUS_OK) {
-		imap_list(imap, imap_list_callback, data, "", "%");
-	} else {
-		worker_post_message(data->pipe, WORKER_LIST_ERROR, data->message, NULL);
-		free(data);
-	}
-}
-
 void handle_worker_list(struct worker_pipe *pipe, struct worker_message *message) {
-	/*
-	 * This issues two IMAP commands - one to find the delimiter, and one to
-	 * do the actual listing.
-	 */
 	struct imap_connection *imap = pipe->data;
 	struct list_data *data = malloc(sizeof(struct list_data));
 	data->pipe = pipe; data->message = message;
 	worker_post_message(pipe, WORKER_ACK, message, NULL);
-	imap_list(imap, imap_delimiter_callback, data, "", "");
+	imap_list(imap, imap_list_callback, data, "", "%");
 }

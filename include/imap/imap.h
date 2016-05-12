@@ -49,8 +49,8 @@ struct mailbox {
     list_t *flags;
     list_t *messages;
     char *name;
-    int exists, recent, unseen;
-    int nextuid; // Predicted, not definite
+    long exists, recent, unseen;
+    long nextuid; // Predicted, not definite
     bool read_write;
 };
 
