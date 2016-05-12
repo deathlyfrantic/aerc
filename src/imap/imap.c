@@ -44,7 +44,7 @@ void handle_line(struct imap_connection *imap, const char *line) {
 	 * up by spaces.
 	 */
 	list_t *split = split_string(line, " ");
-	if (split->length <= 2) {
+	if (split->length < 2) {
 		free_flat_list(split);
 		worker_log(L_DEBUG, "Got malformed IMAP command: %s", line);
 		return;
@@ -199,6 +199,14 @@ void imap_receive(struct imap_connection *imap) {
 	}
 }
 
+void handle_noop(struct imap_connection *imap, const char *token,
+		const char *cmd, imap_arg_t *args) {
+	/*
+	 * Handler for commands we don't care about to avoid logging unknown command
+	 * warnings.
+	 */
+}
+
 void imap_init(struct imap_connection *imap) {
 	/* Set up the internal state of the IMAP connection */
 	imap->mode = RECV_WAIT;
@@ -226,6 +234,10 @@ void imap_init(struct imap_connection *imap) {
 		hashtable_set(internal_handlers, "EXISTS", handle_imap_existsunseenrecent);
 		hashtable_set(internal_handlers, "UNSEEN", handle_imap_existsunseenrecent);
 		hashtable_set(internal_handlers, "RECENT", handle_imap_existsunseenrecent);
+		hashtable_set(internal_handlers, "UIDNEXT", handle_imap_uidnext);
+		hashtable_set(internal_handlers, "READ-WRITE", handle_imap_readwrite);
+		hashtable_set(internal_handlers, "UIDVALIDITY", handle_noop);
+		hashtable_set(internal_handlers, "HIGHESTMODSET", handle_noop); // RFC 4551
 	}
 }
 

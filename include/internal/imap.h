@@ -42,6 +42,10 @@ void handle_imap_flags(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args);
 void handle_imap_existsunseenrecent(struct imap_connection *imap,
         const char *token, const char *cmd, imap_arg_t *args);
+void handle_imap_uidnext(struct imap_connection *imap, const char *token,
+		const char *cmd, imap_arg_t *args);
+void handle_imap_readwrite(struct imap_connection *imap, const char *token,
+		const char *cmd, imap_arg_t *args);
 
 /* Parses an IMAP argument string and returns the number of characters
  * necessary to complete parsing (if the string doesn't represent a complete

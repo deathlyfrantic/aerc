@@ -42,3 +42,17 @@ void handle_imap_existsunseenrecent(struct imap_connection *imap, const char *to
 
 	worker_log(L_DEBUG, "Got weird command %s", cmd);
 }
+
+void handle_imap_uidnext(struct imap_connection *imap, const char *token,
+		const char *cmd, imap_arg_t *args) {
+	assert(args);
+	assert(args->type == IMAP_NUMBER);
+	struct mailbox *mbox = get_mailbox(imap, imap->selected);
+	mbox->nextuid = args->num;
+}
+
+void handle_imap_readwrite(struct imap_connection *imap, const char *token,
+		const char *cmd, imap_arg_t *args) {
+	struct mailbox *mbox = get_mailbox(imap, imap->selected);
+	mbox->read_write = true;
+}
