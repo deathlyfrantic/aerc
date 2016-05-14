@@ -18,6 +18,7 @@
 #include "worker.h"
 #include "imap/worker.h"
 #include "log.h"
+#include "config.h"
 
 void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg) {
 	/*

@@ -14,6 +14,10 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
 )
 
+add_definitions(
+	-DSYSCONFDIR="${CMAKE_INSTALL_FULL_SYSCONFDIR}"
+)
+
 option(enable-openssl "Enables OpenSSL support" YES)
 
 if(enable-openssl)
