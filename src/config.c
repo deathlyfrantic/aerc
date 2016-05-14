@@ -130,6 +130,40 @@ static bool load_config(const char *path, struct aerc_config *config) {
 	return ini == 0;
 }
 
+static int account_compare(const void *_account, const void *_name) {
+	const struct account_config *account = account;
+	const char *name = name;
+	return strcmp(account->name, name);
+}
+
+static int handle_account_option(void *_config, const char *section,
+		const char *key, const char *value) {
+	struct aerc_config *config = _config;
+	worker_log(L_DEBUG, "Handling [%s]%s", section, key);
+
+	int ai = list_seq_find(config->accounts, account_compare, section);
+	struct account_config *account;
+	if (ai == -1) {
+		account = calloc(1, sizeof(struct account_config));
+		account->name = strdup(section);
+		list_add(config->accounts, account);
+	} else {
+		account = config->accounts->items[ai];
+	}
+
+	if (strcmp(key, "source") == 0) {
+		account->source = strdup(value);
+	} else {
+		struct account_config_extra *extra =
+			calloc(1, sizeof(struct account_config_extra));
+		extra->key = strdup(key);
+		extra->value = strdup(value);
+		list_add(account->extras, extra);
+	}
+
+	return 1;
+}
+
 static bool load_accounts(const char *path, struct aerc_config *config) {
 	FILE *f;
 	if (!open_config(path, &f)) {
@@ -137,11 +171,14 @@ static bool load_accounts(const char *path, struct aerc_config *config) {
 		return false;
 	}
 
-	// TODO: do something with the config
+	int ini = ini_parse_file(f, handle_account_option, config);
+	if (ini != 0) {
+		worker_log(L_ERROR, "Configuration parsing error on line %d", ini);
+	}
 
 	fclose(f);
 
-	return true;
+	return ini == 0;
 }
 
 static void config_defaults(struct aerc_config *config) {
