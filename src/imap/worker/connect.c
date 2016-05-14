@@ -58,7 +58,7 @@ void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *mess
 	 */
 	bool res = imap_connect(imap, uri, ssl, handle_imap_ready, pipe);
 	if (res) {
-		worker_log(L_INFO, "Connected to IMAP server");
+		worker_log(L_DEBUG, "Connected to IMAP server");
 		if (ssl) {
 			/*
 			 * If we're using SSL, we need to wait to start doing IMAP
@@ -149,7 +149,8 @@ void handle_imap_cap(struct imap_connection *imap, void *data,
 					imap->uri->username, imap->uri->password);
 		}
 	} else {
-		worker_log(L_ERROR, "IMAP server and client do not share any supported "
+		// TODO: Raise as an error
+		worker_log(L_DEBUG, "IMAP server and client do not share any supported "
 				"authentication mechanisms. Did you provide a username/password?");
 		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, NULL);
 	}

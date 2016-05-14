@@ -47,4 +47,6 @@ add_executable(aerc
     ${imap_worker}
 )
 
+MESSAGE(STATUS "Termbox: ${TERMBOX_LIBRARIES}")
+
 TARGET_LINK_LIBRARIES(aerc pthread ${OPENSSL_LIBRARIES} ${TERMBOX_LIBRARIES})

@@ -20,6 +20,7 @@
 #include "log.h"
 #include "config.h"
 #include "state.h"
+#include "ui.h"
 
 struct aerc_state *state;
 
@@ -29,19 +30,17 @@ void handle_worker_message(struct account_state *account, struct worker_message 
 	 */
 	switch (msg->type) {
 	case WORKER_CONNECT_DONE:
-		fprintf(stderr, "Connection complete.\n");
 		worker_post_action(account->pipe, WORKER_LIST, NULL, NULL);
 		break;
 	case WORKER_CONNECT_ERROR:
-		fprintf(stderr, "Error connecting to mail service.\n");
+		// TODO: Tell the user
 		break;
 	case WORKER_LIST_DONE:
-		fprintf(stderr, "Mailboxes available:\n");
+	{
 		list_t *mailboxes = msg->data;
 		bool have_inbox = false;
 		for (int i = 0; i < mailboxes->length; ++i) {
 			struct aerc_mailbox *mbox = mailboxes->items[i];
-			fprintf(stderr, "%s\n", mbox->name);
 			if (strcmp(mbox->name, "INBOX") == 0) {
 				have_inbox = true;
 			}
@@ -51,12 +50,13 @@ void handle_worker_message(struct account_state *account, struct worker_message 
 					strdup("INBOX"));
 		}
 		break;
+	}
 	case WORKER_LIST_ERROR:
 		fprintf(stderr, "Error listing mailboxes!\n");
 		break;
 #ifdef USE_OPENSSL
 	case WORKER_CONNECT_CERT_CHECK:
-		fprintf(stderr, "TODO: interactive certificate check\n");
+		// TODO: interactive certificate check
 		worker_post_action(account->pipe, WORKER_CONNECT_CERT_OKAY, msg, NULL);
 		break;
 #endif
@@ -73,7 +73,7 @@ void init_state() {
 
 int main(int argc, char **argv) {
 	init_state();
-	init_log(L_DEBUG); // TODO: Customizable
+	init_log(L_INFO); // TODO: Customizable
 	abs_init();
 
 	if (!load_main_config(NULL)) {
@@ -103,6 +103,9 @@ int main(int argc, char **argv) {
 		list_add(state->accounts, account);
 	}
 
+	init_ui();
+	rerender();
+
 	while (1) {
 		struct worker_message *msg;
 		for (int i = 0; i < state->accounts->length; ++i) {
@@ -113,8 +116,14 @@ int main(int argc, char **argv) {
 			}
 		}
 
+		if (!ui_tick()) {
+			break;
+		}
+
 		struct timespec spec = { 0, .5e+8 };
 		nanosleep(&spec, NULL);
 	}
+
+	teardown_ui();
 	return 0;
 }

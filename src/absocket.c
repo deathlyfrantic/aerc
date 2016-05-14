@@ -65,7 +65,7 @@ static bool ab_ssl_negotiate(absocket_t *abs) {
 		worker_log(L_ERROR, "Unable to get peer certificate");
 		return false;
 	}
-	worker_log(L_INFO, "%s connection established using %s (%s)",
+	worker_log(L_DEBUG, "%s connection established using %s (%s)",
 			SSL_get_version(abs->ssl),
 			SSL_get_cipher_version(abs->ssl),
 			SSL_get_cipher_name(abs->ssl));

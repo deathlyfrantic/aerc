@@ -90,9 +90,11 @@ static int handle_config_option(void *_config, const char *section,
 		if (strcmp(flags[i].section, section) == 0
 				&& strcmp(flags[i].key, key) == 0) {
 			bool is_true = false;
+			is_true = is_true || strcasecmp(value, "enabled");
+			is_true = is_true || strcasecmp(value, "enable");
 			is_true = is_true || strcasecmp(value, "true");
 			is_true = is_true || strcasecmp(value, "yes");
-			is_true = is_true || strcasecmp(value, "enabled");
+			is_true = is_true || strcasecmp(value, "on");
 			is_true = is_true || strcasecmp(value, "1");
 			*flags[i].flag = is_true;
 			return 1;
@@ -112,7 +114,7 @@ static int handle_config_option(void *_config, const char *section,
 }
 
 static bool load_config(const char *path, struct aerc_config *config) {
-	worker_log(L_INFO, "Loading config from %s", path);
+	worker_log(L_DEBUG, "Loading config from %s", path);
 
 	FILE *f;
 	if (!open_config(path, &f)) {
@@ -131,7 +133,7 @@ static bool load_config(const char *path, struct aerc_config *config) {
 }
 
 static int account_compare(const void *_account, const void *_name) {
-	const struct account_config *account = account;
+	const struct account_config *account = _account;
 	const char *name = name;
 	return strcmp(account->name, name);
 }
