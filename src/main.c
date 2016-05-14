@@ -68,6 +68,12 @@ int main(int argc, char **argv) {
 	 */
 
 	init_log(L_DEBUG); // TODO: Customizable
+
+	if (!load_main_config(NULL)) {
+		worker_log(L_ERROR, "Error loading config");
+		return 1;
+	}
+
 	abs_init();
 	struct worker_pipe *worker_pipe = worker_pipe_new();
 

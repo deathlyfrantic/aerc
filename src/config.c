@@ -14,10 +14,12 @@
 #include <stdlib.h>
 #include <wordexp.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include "util/ini.h"
 #include "util/list.h"
 #include "log.h"
 #include "config.h"
@@ -28,7 +30,7 @@ static bool file_exists(const char *path) {
 	return access(path, R_OK) != -1;
 }
 
-static char *get_config_path(const char **config_paths) {
+static char *get_config_path(const char **config_paths, int len) {
 	if (!getenv("XDG_CONFIG_HOME")) {
 		char *home = getenv("HOME");
 		char *config_home = malloc(strlen(home) + strlen("/.config") + 1);
@@ -43,7 +45,7 @@ static char *get_config_path(const char **config_paths) {
 	char *path;
 
 	int i;
-	for (i = 0; i < (int)(sizeof(config_paths) / sizeof(char *)); ++i) {
+	for (i = 0; i < len; ++i) {
 		if (wordexp(config_paths[i], &p, 0) == 0) {
 			path = strdup(p.we_wordv[0]);
 			wordfree(&p);
@@ -71,6 +73,44 @@ static bool open_config(const char *path, FILE **f) {
 	return *f != NULL;
 }
 
+static int handle_config_option(void *_config, const char *section,
+		const char *key, const char *value) {
+	struct aerc_config *config = _config;
+	worker_log(L_DEBUG, "Handling [%s]%s=%s", section, key, value);
+
+	struct { const char *section; const char *key; bool *flag; } flags[] = {
+		{ "ui", "show-all-headers", &config->ui.show_all_headers }
+	};
+	struct { const char *section; const char *key; char **string; } strings[] = {
+		{ "ui", "index-format", &config->ui.index_format },
+		{ "ui", "timestamp-format", &config->ui.timestamp_format }
+	};
+
+	for (size_t i = 0; i < sizeof(flags) / (sizeof(void *) * 3); ++i) {
+		if (strcmp(flags[i].section, section) == 0
+				&& strcmp(flags[i].key, key) == 0) {
+			bool is_true = false;
+			is_true = is_true || strcasecmp(value, "true");
+			is_true = is_true || strcasecmp(value, "yes");
+			is_true = is_true || strcasecmp(value, "enabled");
+			is_true = is_true || strcasecmp(value, "1");
+			*flags[i].flag = is_true;
+			return 1;
+		}
+	}
+
+	for (size_t i = 0; i < sizeof(strings) / (sizeof(void *) * 3); ++i) {
+		if (strcmp(strings[i].section, section) == 0
+				&& strcmp(strings[i].key, key) == 0) {
+			*strings[i].string = strdup(value);
+			return 1;
+		}
+	}
+
+	worker_log(L_ERROR, "Unknown config option [%s] %s", section, key);
+	return 0;
+}
+
 static bool load_config(const char *path, struct aerc_config *config) {
 	worker_log(L_INFO, "Loading config from %s", path);
 
@@ -80,11 +120,14 @@ static bool load_config(const char *path, struct aerc_config *config) {
 		return false;
 	}
 
-	// TODO: do something with the config
+	int ini = ini_parse_file(f, handle_config_option, config);
+	if (ini != 0) {
+		worker_log(L_ERROR, "Configuration parsing error on line %d", ini);
+	}
 
 	fclose(f);
 
-	return true;
+	return ini == 0;
 }
 
 static bool load_accounts(const char *path, struct aerc_config *config) {
@@ -134,7 +177,7 @@ bool load_accounts_config() {
 		SYSCONFDIR "/aerc/accounts.conf",
 	};
 
-	return load_accounts(get_config_path(account_paths), config);
+	return load_accounts(get_config_path(account_paths, 3), config);
 }
 
 bool load_main_config(const char *file) {
@@ -148,7 +191,7 @@ bool load_main_config(const char *file) {
 	if (file != NULL) {
 		path = strdup(file);
 	} else {
-		path = get_config_path(config_paths);
+		path = get_config_path(config_paths, 3);
 	}
 
 	struct aerc_config *old_config = config;
