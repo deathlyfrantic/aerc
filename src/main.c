@@ -19,15 +19,18 @@
 #include "imap/worker.h"
 #include "log.h"
 #include "config.h"
+#include "state.h"
 
-void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg) {
+struct aerc_state *state;
+
+void handle_worker_message(struct account_state *account, struct worker_message *msg) {
 	/*
 	 * Handle incoming messages from a worker. This is pretty bare right now.
 	 */
 	switch (msg->type) {
 	case WORKER_CONNECT_DONE:
 		fprintf(stderr, "Connection complete.\n");
-		worker_post_action(pipe, WORKER_LIST, NULL, NULL);
+		worker_post_action(account->pipe, WORKER_LIST, NULL, NULL);
 		break;
 	case WORKER_CONNECT_ERROR:
 		fprintf(stderr, "Error connecting to mail service.\n");
@@ -44,7 +47,8 @@ void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg)
 			}
 		}
 		if (have_inbox) {
-			worker_post_action(pipe, WORKER_SELECT_MAILBOX, NULL, strdup("INBOX"));
+			worker_post_action(account->pipe, WORKER_SELECT_MAILBOX, NULL,
+					strdup("INBOX"));
 		}
 		break;
 	case WORKER_LIST_ERROR:
@@ -53,7 +57,7 @@ void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg)
 #ifdef USE_OPENSSL
 	case WORKER_CONNECT_CERT_CHECK:
 		fprintf(stderr, "TODO: interactive certificate check\n");
-		worker_post_action(pipe, WORKER_CONNECT_CERT_OKAY, msg, NULL);
+		worker_post_action(account->pipe, WORKER_CONNECT_CERT_OKAY, msg, NULL);
 		break;
 #endif
 	default:
@@ -62,37 +66,51 @@ void handle_worker_message(struct worker_pipe *pipe, struct worker_message *msg)
 	}
 }
 
-int main(int argc, char **argv) {
-	/*
-	 * UI thread. Not much happening here yet.
-	 */
+void init_state() {
+	state = calloc(1, sizeof(struct aerc_state));
+	state->accounts = create_list();
+}
 
+int main(int argc, char **argv) {
+	init_state();
 	init_log(L_DEBUG); // TODO: Customizable
+	abs_init();
 
 	if (!load_main_config(NULL)) {
 		worker_log(L_ERROR, "Error loading config");
 		return 1;
 	}
 
-	abs_init();
-	struct worker_pipe *worker_pipe = worker_pipe_new();
-
-	pthread_t worker;
-	pthread_create(&worker, NULL, imap_worker, worker_pipe);
-
-	// TODO: configuration
-	char *connection_string = getenv("CS");
-	if (!connection_string || strlen(connection_string) == 0) {
-		fprintf(stderr, "Usage: env CS='connection string' %s\n", argv[0]);
-		exit(1);
+	if (config->accounts->length == 0) {
+		worker_log(L_ERROR, "No accounts configured. What do you expect me to do?");
+		return 1;
 	}
-	worker_post_action(worker_pipe, WORKER_CONNECT, NULL, connection_string);
+
+	for (int i = 0; i < config->accounts->length; ++i) {
+		struct account_config *ac = config->accounts->items[i];
+		if (!ac->source) {
+			worker_log(L_ERROR, "No source configured for account %s", ac->name);
+			return 1;
+		}
+		struct account_state *account = calloc(1, sizeof(struct account_state));
+		account->name = strdup(ac->name);
+		account->pipe = worker_pipe_new();
+		account->mailboxes = create_list();
+		worker_post_action(account->pipe, WORKER_CONNECT, NULL, ac->source);
+		worker_post_action(account->pipe, WORKER_CONFIGURE, NULL, ac->extras);
+		// TODO: Detect appropriate worker based on source
+		pthread_create(&account->worker, NULL, imap_worker, account->pipe);
+		list_add(state->accounts, account);
+	}
 
 	while (1) {
 		struct worker_message *msg;
-		if (worker_get_message(worker_pipe, &msg)) {
-			handle_worker_message(worker_pipe, msg);
-			worker_message_free(msg);
+		for (int i = 0; i < state->accounts->length; ++i) {
+			struct account_state *account = state->accounts->items[i];
+			if (worker_get_message(account->pipe, &msg)) {
+				handle_worker_message(account, msg);
+				worker_message_free(msg);
+			}
 		}
 
 		struct timespec spec = { 0, .5e+8 };

@@ -1,16 +1,14 @@
 #ifndef STATE_H
 #define STATE_H
 
+#include <pthread.h>
 #include "util/list.h"
 #include "worker.h"
 
-struct aerc_mailbox {
-    char *name;
-    list_t *flags;
-};
-
 struct account_state {
+    char *name;
     struct worker_pipe *pipe;
+    pthread_t worker;
     list_t *mailboxes;
     char *selected;
     int selected_message;
@@ -22,6 +20,6 @@ struct aerc_state {
     list_t *accounts;
 };
 
-extern struct aerc_state state;
+extern struct aerc_state *state;
 
 #endif

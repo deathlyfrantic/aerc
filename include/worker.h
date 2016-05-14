@@ -9,7 +9,11 @@
 
 /* worker.h
  *
- * Defines an abstract interface to an asyncronous mail worker.
+ * Defines an abstract interface to an asynchronous mail worker.
+ *
+ * Messages are passed through an atomic queue with actions and messages.
+ * Whenever passing extra data with a message, ownership of that data is
+ * transfered to the recipient.
  */
 
 enum worker_message_type {
@@ -18,6 +22,7 @@ enum worker_message_type {
     WORKER_END,
     WORKER_OOM,
     WORKER_UNSUPPORTED,
+    WORKER_CONFIGURE,
     /* Connection */
     WORKER_CONNECT,
     WORKER_CONNECT_DONE,
@@ -49,16 +54,16 @@ struct worker_message {
     void *data;
 };
 
+struct aerc_mailbox {
+    char *name;
+    list_t *flags;
+};
+
 #ifdef USE_OPENSSL
 struct cert_check_message {
     X509 *cert;
 };
 #endif
-
-struct aerc_mailbox {
-    char *name;
-    list_t *flags;
-};
 
 /* Misc */
 struct worker_pipe *worker_pipe_new();
