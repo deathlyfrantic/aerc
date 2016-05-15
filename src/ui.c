@@ -6,9 +6,6 @@
 #include "state.h"
 #include "ui.h"
 
-int width, height;
-int x, y;
-
 void init_ui() {
 	tb_init();
 	tb_select_input_mode(TB_INPUT_ESC | TB_INPUT_MOUSE);
@@ -18,7 +15,7 @@ void teardown_ui() {
 	tb_shutdown();
 }
 
-int tb_printf(struct tb_cell *basis, const char *fmt, ...) {
+int tb_printf(int x, int y, struct tb_cell *basis, const char *fmt, ...) {
 	va_list args;
 	va_start(args, fmt);
 	int len = vsnprintf(NULL, 0, fmt, args);
@@ -32,11 +29,6 @@ int tb_printf(struct tb_cell *basis, const char *fmt, ...) {
 	int _x = x, _y = y;
 	char *b = buf;
 	while (*b) {
-		if (_x >= width) {
-			/* Wrap */
-			_x = x;
-			_y++;
-		}
 		b += tb_utf8_char_to_unicode(&basis->ch, b);
 		switch (basis->ch) {
 		case '\n':
@@ -57,10 +49,22 @@ int tb_printf(struct tb_cell *basis, const char *fmt, ...) {
 	return len;
 }
 
-void render_account_bar() {
+void render_account_bar(int x, int y, int width, int folder_width) {
 	struct tb_cell cell = { .fg = TB_DEFAULT, .bg = TB_DEFAULT };
-	tb_printf(&cell, "───────┤aerc├──────┐");
-	x += sizeof("        aerc        ") - 1;
+
+	/* Render folder list header */
+	const char *aerc = "┤aerc├"; // 6 chars
+	int sides = (folder_width - 6) / 2;
+	for (int _x = 0; _x < sides; ++_x) {
+		tb_printf(x++, y, &cell, "─");
+	}
+	tb_printf(x, y, &cell, aerc); x += 6;
+	for (int _x = 0; _x < sides - 1; ++_x) {
+		tb_printf(x++, y, &cell, "─");
+	}
+	tb_printf(x++, y, &cell, "┐");
+
+	/* Render account tabs */
 	for (int i = 0; i < state->accounts->length; ++i) {
 		struct account_state *account = state->accounts->items[i];
 		if (i == state->selected_account) {
@@ -71,11 +75,11 @@ void render_account_bar() {
 				cell.bg = TB_RED;
 			}
 		}
-		x += tb_printf(&cell, " %s ", account->name);
+		x += tb_printf(x, 0, &cell, " %s ", account->name);
 	}
 	cell.fg = TB_BLACK; cell.bg = TB_WHITE;
+
 	while (x < width) tb_put_cell(x++, y, &cell);
-	x = 0; y++;
 }
 
 static int compare_mailboxes(const void *_a, const void *_b) {
@@ -84,17 +88,18 @@ static int compare_mailboxes(const void *_a, const void *_b) {
 	return strcmp(a->name, b->name);
 }
 
-void render_folder_list() {
+void render_folder_list(int x, int y, int width, int height) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
 
 	struct tb_cell cell = { .fg = TB_DEFAULT, .bg = TB_DEFAULT };
 	int _x = x, _y = y;
-	_x += 19; // TODO: Configurable
+	_x += width - 1;
 	for (; _y < height; ++_y) {
 		cell.ch = u'│';
 		tb_put_cell(_x, _y, &cell);
 	}
+
 	_x = x, _y = y;
 	if (account->mailboxes) {
 		list_qsort(account->mailboxes, compare_mailboxes);
@@ -108,58 +113,54 @@ void render_folder_list() {
 			char c = '\0';
 			// TODO: utf-8 strlen
 			// TODO: decode mailbox names according to spec
-			if (strlen(mailbox->name) > 19) {
-				mailbox->name[19] = '\0';
+			if ((int)strlen(mailbox->name) > width - 1) {
+				mailbox->name[width - 1] = '\0';
 			}
-			int l = tb_printf(&cell, "%s", mailbox->name);
+			int l = tb_printf(x, y, &cell, "%s", mailbox->name);
 			if (c != '\0') {
-				mailbox->name[19] = c;
+				mailbox->name[width - 1] = c;
 			}
 			cell.ch = ' ';
-			while (l < 19) {
+			while (l < width - 1) {
 				tb_put_cell(x + l, y, &cell);
 				l++;
 			}
 		}
 	} else {
-		tb_printf(&cell, "        ....");
+		tb_printf(x, y, &cell, "....");
 	}
-	x += 20;
-	y = _y;
 }
 
-void render_status() {
+void render_status(int x, int y, int width) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
 	if (!account->status.text) return;
 
 	struct tb_cell cell = { .fg = TB_BLACK, .bg = TB_WHITE };
+	cell.ch = ' ';
 	if (account->status.status == ACCOUNT_ERROR) {
 		cell.bg = TB_RED;
 	}
-	int _x = x, _y = y;
-	y = height - 1;
-	tb_printf(&cell, "%s", account->status.text);
-	x += strlen(account->status.text);
-	cell.ch = ' ';
-	while (x < width) tb_put_cell(x++, y, &cell);
-	y = _y; x = _x;
+	for (int _x = 0; _x < width; ++_x) {
+		tb_put_cell(x + _x, y, &cell);
+	}
+	tb_printf(x, y, &cell, "%s", account->status.text);
 }
 
-void render_items() {
+void render_items(int x, int y, int width, int height) {
 	struct tb_cell cell = { .fg = TB_DEFAULT, .bg = TB_DEFAULT };
-	tb_printf(&cell, " ....");
+	tb_printf(x, y, &cell, " ....");
 }
 
 void rerender() {
 	tb_clear();
-	width = tb_width(), height = tb_height();
-	x = 0, y = 0;
+	int width = tb_width(), height = tb_height();
+	int folder_width = 20;
 
-	render_account_bar();
-	render_folder_list();
-	render_status();
-	render_items();
+	render_account_bar(0, 0, width, folder_width);
+	render_folder_list(0, 1, folder_width, height);
+	render_status(folder_width, height - 1, width - folder_width);
+	render_items(folder_width + 1, 1, height - 2, width - folder_width - 1);
 
 	tb_present();
 }
