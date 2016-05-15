@@ -86,6 +86,7 @@ int main(int argc, char **argv) {
 		pthread_create(&account->worker.thread, NULL, imap_worker,
 				account->worker.pipe);
 		list_add(state->accounts, account);
+		set_status(account, ACCOUNT_OKAY, "Connecting...");
 	}
 
 	init_ui();
