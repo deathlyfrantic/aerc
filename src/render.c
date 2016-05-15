@@ -86,8 +86,7 @@ void render_folder_list(int x, int y, int width, int height) {
 			}
 		}
 	} else {
-		get_color("loading-indicator", &cell);
-		tb_printf(x, y, &cell, "....");
+		add_loading(x, y);
 	}
 }
 
@@ -115,6 +114,5 @@ void render_status(int x, int y, int width) {
 }
 
 void render_items(int x, int y, int width, int height) {
-	struct tb_cell cell = { .fg = TB_DEFAULT, .bg = TB_DEFAULT };
-	tb_printf(x, y, &cell, " ....");
+	add_loading(x, y);
 }

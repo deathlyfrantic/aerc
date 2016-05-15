@@ -16,9 +16,14 @@ struct account_config {
 
 struct aerc_config {
     struct {
+        list_t *loading_frames;
         char *index_format;
         char *timestamp_format;
+        char *render_account_tabs;
+        char *border_style;
         bool show_all_headers;
+        bool render_sidebar;
+        int sidebar_width;
     } ui;
     list_t *accounts;
 };

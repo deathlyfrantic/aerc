@@ -3,9 +3,21 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
+#include "util/stringop.h"
+#include "util/list.h"
+#include "config.h"
+#include "colors.h"
 #include "render.h"
 #include "state.h"
 #include "ui.h"
+
+int frame = 0;
+
+struct loading_indicator {
+	int x, y;
+};
+
+list_t *loading_indicators = NULL;
 
 void init_ui() {
 	tb_init();
@@ -27,10 +39,12 @@ int tb_printf(int x, int y, struct tb_cell *basis, const char *fmt, ...) {
 	vsnprintf(buf, len + 1, fmt, args);
 	va_end(args);
 
+	int l = 0;
 	int _x = x, _y = y;
 	char *b = buf;
 	while (*b) {
 		b += tb_utf8_char_to_unicode(&basis->ch, b);
+		++l;
 		switch (basis->ch) {
 		case '\n':
 			_x = x;
@@ -47,10 +61,13 @@ int tb_printf(int x, int y, struct tb_cell *basis, const char *fmt, ...) {
 	}
 
 	free(buf);
-	return len;
+	return l;
 }
 
 void rerender() {
+	free_flat_list(loading_indicators);
+	loading_indicators = create_list();
+
 	tb_clear();
 	int width = tb_width(), height = tb_height();
 	int folder_width = 20;
@@ -63,7 +80,31 @@ void rerender() {
 	tb_present();
 }
 
+void add_loading(int x, int y) {
+	struct loading_indicator *indic = calloc(1, sizeof(struct loading_indicator));
+	indic->x = x;
+	indic->y = y;
+	list_add(loading_indicators, indic);
+}
+
+static void render_loading(int x, int y) {
+	struct tb_cell cell;
+	get_color("loading-indicator", &cell);
+	int f = frame / 8 % config->ui.loading_frames->length;
+	tb_printf(x, y, &cell, "%s   ",
+			(const char *)config->ui.loading_frames->items[f]);
+}
+
 bool ui_tick() {
+	if (loading_indicators->length > 0) {
+		frame++;
+		for (int i = 0; i < loading_indicators->length; ++i) {
+			struct loading_indicator *indic = loading_indicators->items[i];
+			render_loading(indic->x, indic->y);
+		}
+		tb_present();
+	}
+
 	struct tb_event event;
 	switch (tb_peek_event(&event, 0)) {
 	case TB_EVENT_RESIZE:

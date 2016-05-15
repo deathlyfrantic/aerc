@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
+#include "util/stringop.h"
 #include "util/ini.h"
 #include "util/list.h"
 #include "colors.h"
@@ -74,17 +75,36 @@ static bool open_config(const char *path, FILE **f) {
 	return *f != NULL;
 }
 
+static int handle_loading_indicator(struct aerc_config *config, const char *value) {
+	free_flat_list(config->ui.loading_frames);
+	config->ui.loading_frames = split_string(value, ",");
+	return 1;
+}
+
 static int handle_config_option(void *_config, const char *section,
 		const char *key, const char *value) {
 	struct aerc_config *config = _config;
 	worker_log(L_DEBUG, "Handling [%s]%s=%s", section, key, value);
 
 	struct { const char *section; const char *key; bool *flag; } flags[] = {
-		{ "ui", "show-all-headers", &config->ui.show_all_headers }
+		{ "ui", "show-all-headers", &config->ui.show_all_headers },
+		{ "ui", "render-sidebar", &config->ui.render_sidebar }
 	};
 	struct { const char *section; const char *key; char **string; } strings[] = {
 		{ "ui", "index-format", &config->ui.index_format },
-		{ "ui", "timestamp-format", &config->ui.timestamp_format }
+		{ "ui", "timestamp-format", &config->ui.timestamp_format },
+		{ "ui", "render-account-tabs", &config->ui.render_account_tabs },
+		{ "ui", "border-style", &config->ui.border_style }
+	};
+	struct { const char *section; const char *key; int *value; } integers[] = {
+		{ "ui", "sidebar-width", &config->ui.sidebar_width }
+	};
+	struct {
+		const char *section;
+		const char *key;
+		int (*func)(struct aerc_config *config, const char *value);
+	} funcs[] = {
+		{ "ui", "loading-frames", handle_loading_indicator }
 	};
 
 	if (strcmp(section, "colors") == 0) {
@@ -115,7 +135,29 @@ static int handle_config_option(void *_config, const char *section,
 		}
 	}
 
-	worker_log(L_ERROR, "Unknown config option [%s] %s", section, key);
+	for (size_t i = 0; i < sizeof(integers) / (sizeof(void *) * 3); ++i) {
+		if (strcmp(integers[i].section, section) == 0
+				&& strcmp(integers[i].key, key) == 0) {
+			char *end;
+			int val = (int)strtol(value, &end, 10);
+			if (*end) {
+				worker_log(L_ERROR, "Invalid value for [%s]%s: %s",
+						section, key, value);
+				return 0;
+			}
+			*integers[i].value = val;
+			return 1;
+		}
+	}
+
+	for (size_t i = 0; i < sizeof(funcs) / (sizeof(void *) * 3); ++i) {
+		if (strcmp(funcs[i].section, section) == 0
+				&& strcmp(funcs[i].key, key) == 0) {
+			return funcs[i].func(config, value);
+		}
+	}
+
+	worker_log(L_ERROR, "Unknown config option [%s]%s", section, key);
 	// TODO: Error?
 	return 1;
 }
@@ -192,6 +234,11 @@ static bool load_accounts(const char *path, struct aerc_config *config) {
 
 static void config_defaults(struct aerc_config *config) {
 	config->accounts = create_list();
+	config->ui.loading_frames = create_list();
+	list_add(config->ui.loading_frames, strdup("..  "));
+	list_add(config->ui.loading_frames, strdup(" .. "));
+	list_add(config->ui.loading_frames, strdup("  .."));
+	list_add(config->ui.loading_frames, strdup(" .. "));
 	config->ui.index_format = strdup("%4C %Z %D %-17.17n %s");
 	config->ui.timestamp_format = strdup("%F %l:%M %p");
 	config->ui.show_all_headers = false;
