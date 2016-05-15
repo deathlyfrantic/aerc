@@ -7,6 +7,7 @@
 #include "worker.h"
 
 enum account_status {
+    ACCOUNT_NOT_READY,
     ACCOUNT_OKAY,
     ACCOUNT_ERROR
 };

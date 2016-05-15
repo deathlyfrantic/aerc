@@ -100,7 +100,13 @@ void render_status(int x, int y, int width) {
 	for (int _x = 0; _x < width; ++_x) {
 		tb_put_cell(x + _x, y, &cell);
 	}
-	tb_printf(x, y, &cell, "%s", account->status.text);
+	if (account->status.status == ACCOUNT_OKAY) {
+		tb_printf(x, y, &cell, "%s -- %s",
+				account->selected,
+				account->status.text);
+	} else {
+		tb_printf(x, y, &cell, "%s", account->status.text);
+	}
 }
 
 void render_items(int x, int y, int width, int height) {
