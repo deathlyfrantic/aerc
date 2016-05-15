@@ -10,6 +10,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include "colors.h"
 #include "handlers.h"
 #include "absocket.h"
 #include "worker.h"
@@ -58,6 +59,7 @@ int main(int argc, char **argv) {
 	init_state();
 	init_log(L_INFO); // TODO: Customizable
 	abs_init();
+	colors_init();
 
 	if (!load_main_config(NULL)) {
 		worker_log(L_ERROR, "Error loading config");

@@ -4,36 +4,38 @@
 #include "state.h"
 #include "ui.h"
 #include "render.h"
+#include "colors.h"
 
 void render_account_bar(int x, int y, int width, int folder_width) {
-	struct tb_cell cell = { .fg = TB_DEFAULT, .bg = TB_DEFAULT };
+	struct tb_cell cell;
 
 	/* Render folder list header */
-	const char *aerc = "┤aerc├"; // 6 chars
-	int sides = (folder_width - 6) / 2;
+	get_color("borders", &cell);
+	const char *aerc = "aerc"; // 4 chars
+	int sides = (folder_width - 4) / 2;
 	for (int _x = 0; _x < sides; ++_x) {
-		tb_printf(x++, y, &cell, "─");
+		tb_printf(x++, y, &cell, " ");
 	}
-	tb_printf(x, y, &cell, aerc); x += 6;
+	tb_printf(x, y, &cell, aerc); x += 4;
 	for (int _x = 0; _x < sides - 1; ++_x) {
-		tb_printf(x++, y, &cell, "─");
+		tb_printf(x++, y, &cell, " ");
 	}
-	tb_printf(x++, y, &cell, "┐");
+	tb_printf(x, y, &cell, " "); x += 1;
 
 	/* Render account tabs */
 	for (int i = 0; i < state->accounts->length; ++i) {
 		struct account_state *account = state->accounts->items[i];
 		if (i == state->selected_account) {
-			cell.fg = TB_DEFAULT; cell.bg = TB_DEFAULT;
+			get_color("account-selected", &cell);
 		} else {
-			cell.fg = TB_BLACK; cell.bg = TB_WHITE;
+			get_color("account-unselected", &cell);
 			if (account->status.status == ACCOUNT_ERROR) {
-				cell.bg = TB_RED;
+				get_color("account-error", &cell);
 			}
 		}
 		x += tb_printf(x, 0, &cell, " %s ", account->name);
 	}
-	cell.fg = TB_BLACK; cell.bg = TB_WHITE;
+	get_color("borders", &cell);
 
 	while (x < width) tb_put_cell(x++, y, &cell);
 }
@@ -48,11 +50,12 @@ void render_folder_list(int x, int y, int width, int height) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
 
-	struct tb_cell cell = { .fg = TB_DEFAULT, .bg = TB_DEFAULT };
+	struct tb_cell cell;
+	get_color("borders", &cell);
 	int _x = x, _y = y;
 	_x += width - 1;
 	for (; _y < height; ++_y) {
-		cell.ch = u'│';
+		cell.ch = ' ';
 		tb_put_cell(_x, _y, &cell);
 	}
 
@@ -62,9 +65,9 @@ void render_folder_list(int x, int y, int width, int height) {
 		for (int i = 0; y < height && i < account->mailboxes->length; ++i, ++y) {
 			struct aerc_mailbox *mailbox = account->mailboxes->items[i];
 			if (strcmp(mailbox->name, account->selected) == 0) {
-				cell.fg = TB_BLACK; cell.bg = TB_WHITE;
+				get_color("folder-selected", &cell);
 			} else {
-				cell.fg = TB_DEFAULT; cell.bg = TB_DEFAULT;
+				get_color("folder-unselected", &cell);
 			}
 			char c = '\0';
 			// TODO: utf-8 strlen
@@ -83,6 +86,7 @@ void render_folder_list(int x, int y, int width, int height) {
 			}
 		}
 	} else {
+		get_color("loading-indicator", &cell);
 		tb_printf(x, y, &cell, "....");
 	}
 }
@@ -92,10 +96,11 @@ void render_status(int x, int y, int width) {
 		state->accounts->items[state->selected_account];
 	if (!account->status.text) return;
 
-	struct tb_cell cell = { .fg = TB_BLACK, .bg = TB_WHITE };
+	struct tb_cell cell;
+	get_color("status-line", &cell);
 	cell.ch = ' ';
 	if (account->status.status == ACCOUNT_ERROR) {
-		cell.bg = TB_RED;
+		get_color("status-line-error", &cell);
 	}
 	for (int _x = 0; _x < width; ++_x) {
 		tb_put_cell(x + _x, y, &cell);
