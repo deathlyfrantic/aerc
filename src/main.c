@@ -10,10 +10,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
-#ifdef USE_OPENSSL
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#endif
+#include "handlers.h"
 #include "absocket.h"
 #include "worker.h"
 #include "imap/worker.h"
@@ -24,48 +21,31 @@
 
 struct aerc_state *state;
 
+struct message_handler {
+	enum worker_message_type action;
+	void (*handler)(struct account_state *account, struct worker_message *message);
+};
+
+struct message_handler message_handlers[] = {
+	{ WORKER_CONNECT_DONE, handle_worker_connect_done },
+	{ WORKER_CONNECT_ERROR, handle_worker_connect_error },
+	{ WORKER_LIST_DONE, handle_worker_list_done },
+	{ WORKER_LIST_ERROR, handle_worker_list_error },
+	{ WORKER_CONNECT_CERT_CHECK, handle_worker_connect_cert_check },
+};
+
 void handle_worker_message(struct account_state *account, struct worker_message *msg) {
 	/*
-	 * Handle incoming messages from a worker. This is pretty bare right now.
+	 * Handle incoming messages from a worker.
 	 */
-	switch (msg->type) {
-	case WORKER_CONNECT_DONE:
-		worker_post_action(account->pipe, WORKER_LIST, NULL, NULL);
-		break;
-	case WORKER_CONNECT_ERROR:
-		// TODO: Tell the user
-		break;
-	case WORKER_LIST_DONE:
-	{
-		account->mailboxes = msg->data;
-		bool have_inbox = false;
-		for (int i = 0; i < account->mailboxes->length; ++i) {
-			struct aerc_mailbox *mbox = account->mailboxes->items[i];
-			if (strcmp(mbox->name, "INBOX") == 0) {
-				have_inbox = true;
-			}
+	for ( size_t i = 0;
+			i < sizeof(message_handlers) / sizeof(struct message_handler);
+			++i) {
+		struct message_handler handler = message_handlers[i];
+		if (handler.action == msg->type) {
+			handler.handler(account, msg);
+			break;
 		}
-		if (have_inbox) {
-			free(account->selected);
-			account->selected = strdup("INBOX");
-			worker_post_action(account->pipe, WORKER_SELECT_MAILBOX, NULL,
-					strdup("INBOX"));
-		}
-		rerender();
-		break;
-	}
-	case WORKER_LIST_ERROR:
-		fprintf(stderr, "Error listing mailboxes!\n");
-		break;
-#ifdef USE_OPENSSL
-	case WORKER_CONNECT_CERT_CHECK:
-		// TODO: interactive certificate check
-		worker_post_action(account->pipe, WORKER_CONNECT_CERT_OKAY, msg, NULL);
-		break;
-#endif
-	default:
-		// No-op
-		break;
 	}
 }
 
@@ -97,11 +77,14 @@ int main(int argc, char **argv) {
 		}
 		struct account_state *account = calloc(1, sizeof(struct account_state));
 		account->name = strdup(ac->name);
-		account->pipe = worker_pipe_new();
-		worker_post_action(account->pipe, WORKER_CONNECT, NULL, ac->source);
-		worker_post_action(account->pipe, WORKER_CONFIGURE, NULL, ac->extras);
+		account->worker.pipe = worker_pipe_new();
+		worker_post_action(account->worker.pipe, WORKER_CONNECT, NULL,
+				ac->source);
+		worker_post_action(account->worker.pipe, WORKER_CONFIGURE, NULL,
+				ac->extras);
 		// TODO: Detect appropriate worker based on source
-		pthread_create(&account->worker, NULL, imap_worker, account->pipe);
+		pthread_create(&account->worker.thread, NULL, imap_worker,
+				account->worker.pipe);
 		list_add(state->accounts, account);
 	}
 
@@ -112,7 +95,7 @@ int main(int argc, char **argv) {
 		struct worker_message *msg;
 		for (int i = 0; i < state->accounts->length; ++i) {
 			struct account_state *account = state->accounts->items[i];
-			if (worker_get_message(account->pipe, &msg)) {
+			if (worker_get_message(account->worker.pipe, &msg)) {
 				handle_worker_message(account, msg);
 				worker_message_free(msg);
 			}

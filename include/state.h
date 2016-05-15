@@ -2,17 +2,35 @@
 #define STATE_H
 
 #include <pthread.h>
+#include <time.h>
 #include "util/list.h"
 #include "worker.h"
 
+enum account_status {
+    ACCOUNT_OKAY,
+    ACCOUNT_ERROR
+};
+
 struct account_state {
+    struct {
+        struct worker_pipe *pipe;
+        pthread_t thread;
+    } worker;
+
+    struct {
+        char *text;
+        struct timespec since;
+        enum account_status status;
+    } status;
+
+    struct {
+        int selected_message;
+        int list_offset;
+    } ui;
+
     char *name;
-    struct worker_pipe *pipe;
-    pthread_t worker;
     list_t *mailboxes;
     char *selected;
-    int selected_message;
-    int list_offset;
 };
 
 struct aerc_state {
@@ -22,6 +40,7 @@ struct aerc_state {
 
 extern struct aerc_state *state;
 
-struct aerc_mailbox *get_aerc_mailbox(const char *name);
+void set_status(struct account_state *account, enum account_status state,
+        const char *text);
 
 #endif

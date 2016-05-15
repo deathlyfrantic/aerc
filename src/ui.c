@@ -32,6 +32,11 @@ int tb_printf(struct tb_cell *basis, const char *fmt, ...) {
 	int _x = x, _y = y;
 	char *b = buf;
 	while (*b) {
+		if (_x >= width) {
+			/* Wrap */
+			_x = x;
+			_y++;
+		}
 		b += tb_utf8_char_to_unicode(&basis->ch, b);
 		switch (basis->ch) {
 		case '\n':
@@ -62,6 +67,9 @@ void render_account_bar() {
 			cell.fg = TB_DEFAULT; cell.bg = TB_DEFAULT;
 		} else {
 			cell.fg = TB_BLACK; cell.bg = TB_WHITE;
+			if (account->status.status == ACCOUNT_ERROR) {
+				cell.bg = TB_RED;
+			}
 		}
 		x += tb_printf(&cell, " %s ", account->name);
 	}
@@ -120,6 +128,24 @@ void render_folder_list() {
 	y = _y;
 }
 
+void render_status() {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	if (!account->status.text) return;
+
+	struct tb_cell cell = { .fg = TB_BLACK, .bg = TB_WHITE };
+	if (account->status.status == ACCOUNT_ERROR) {
+		cell.bg = TB_RED;
+	}
+	int _x = x, _y = y;
+	y = height - 1;
+	tb_printf(&cell, "%s", account->status.text);
+	x += strlen(account->status.text);
+	cell.ch = ' ';
+	while (x < width) tb_put_cell(x++, y, &cell);
+	y = _y; x = _x;
+}
+
 void render_items() {
 	struct tb_cell cell = { .fg = TB_DEFAULT, .bg = TB_DEFAULT };
 	tb_printf(&cell, " ....");
@@ -132,6 +158,7 @@ void rerender() {
 
 	render_account_bar();
 	render_folder_list();
+	render_status();
 	render_items();
 
 	tb_present();
@@ -148,6 +175,19 @@ bool ui_tick() {
 				|| event.ch == 'q'
 				|| event.key == TB_KEY_CTRL_C) {
 			return false;
+		}
+		if (event.key == TB_KEY_CTRL_L) {
+			rerender();
+		}
+		if (event.key == TB_KEY_ARROW_RIGHT) {
+			state->selected_account++;
+			state->selected_account %= state->accounts->length;
+			rerender();
+		}
+		if (event.key == TB_KEY_ARROW_LEFT) {
+			state->selected_account--;
+			state->selected_account %= state->accounts->length;
+			rerender();
 		}
 		// TODO: Handle other keys
 		break;

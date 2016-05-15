@@ -42,7 +42,8 @@ void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *mess
 	} else if (strcmp(uri->scheme, "imaps") == 0) {
 		ssl = true;
 	} else {
-		worker_log(L_DEBUG, "Unsupported protocol '%s'", uri->scheme);
+		worker_post_message(pipe, WORKER_CONNECT_ERROR, message,
+				"Unsupported protocol");
 		return;
 	}
 	/*
@@ -77,8 +78,8 @@ void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *mess
 			imap->mode = RECV_LINE;
 		}
 	} else {
-		worker_log(L_DEBUG, "Error connecting to IMAP server");
-		worker_post_message(pipe, WORKER_CONNECT_ERROR, message, NULL);
+		worker_post_message(pipe, WORKER_CONNECT_ERROR, message,
+				"Error connecting to IMAP server");
 	}
 	imap->uri = uri;
 }
@@ -114,6 +115,7 @@ void handle_imap_cap(struct imap_connection *imap, void *data,
 	 */
 	struct worker_pipe *pipe = data;
 	if (status != STATUS_OK) {
+		// TODO: Format errors sent to main thread
 		worker_log(L_ERROR, "IMAP error: %s", args);
 		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, NULL);
 		return;
@@ -123,8 +125,8 @@ void handle_imap_cap(struct imap_connection *imap, void *data,
 	 * bother supporting anything older than that.
 	 */
 	if (!imap->cap->imap4rev1) {
-		worker_log(L_ERROR, "IMAP server does not support IMAP4rev1");
-		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, NULL);
+		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL,
+				"IMAP server does not support IMAP4rev1");
 		return;
 	}
 	/*
@@ -149,10 +151,9 @@ void handle_imap_cap(struct imap_connection *imap, void *data,
 					imap->uri->username, imap->uri->password);
 		}
 	} else {
-		// TODO: Raise as an error
-		worker_log(L_DEBUG, "IMAP server and client do not share any supported "
+		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL,
+				"IMAP server and client do not share any supported "
 				"authentication mechanisms. Did you provide a username/password?");
-		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, NULL);
 	}
 }
 
