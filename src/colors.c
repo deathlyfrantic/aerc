@@ -13,12 +13,15 @@ void colors_init() {
 	colors = create_hashtable(50, hash_string);
 	
 	set_color("borders", "white:black");
+	set_color("loading-indicator", "default:default");
+
 	set_color("account-unselected", "white:black");
 	set_color("account-selected", "default:default");
 	set_color("account-error", "red:black");
+
 	set_color("folder-unselected", "default:default");
 	set_color("folder-selected", "white:black");
-	set_color("loading-indicator", "default:default");
+
 	set_color("status-line", "white:black");
 	set_color("status-line-error", "red:black");
 }

@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include "util/ini.h"
 #include "util/list.h"
+#include "colors.h"
 #include "log.h"
 #include "config.h"
 
@@ -86,6 +87,11 @@ static int handle_config_option(void *_config, const char *section,
 		{ "ui", "timestamp-format", &config->ui.timestamp_format }
 	};
 
+	if (strcmp(section, "colors") == 0) {
+		set_color(key, value);
+		return 1;
+	}
+
 	for (size_t i = 0; i < sizeof(flags) / (sizeof(void *) * 3); ++i) {
 		if (strcmp(flags[i].section, section) == 0
 				&& strcmp(flags[i].key, key) == 0) {
@@ -110,7 +116,8 @@ static int handle_config_option(void *_config, const char *section,
 	}
 
 	worker_log(L_ERROR, "Unknown config option [%s] %s", section, key);
-	return 0;
+	// TODO: Error?
+	return 1;
 }
 
 static bool load_config(const char *path, struct aerc_config *config) {
