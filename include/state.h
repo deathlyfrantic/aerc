@@ -22,4 +22,6 @@ struct aerc_state {
 
 extern struct aerc_state *state;
 
+struct aerc_mailbox *get_aerc_mailbox(const char *name);
+
 #endif

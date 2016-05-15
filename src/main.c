@@ -37,18 +37,21 @@ void handle_worker_message(struct account_state *account, struct worker_message 
 		break;
 	case WORKER_LIST_DONE:
 	{
-		list_t *mailboxes = msg->data;
+		account->mailboxes = msg->data;
 		bool have_inbox = false;
-		for (int i = 0; i < mailboxes->length; ++i) {
-			struct aerc_mailbox *mbox = mailboxes->items[i];
+		for (int i = 0; i < account->mailboxes->length; ++i) {
+			struct aerc_mailbox *mbox = account->mailboxes->items[i];
 			if (strcmp(mbox->name, "INBOX") == 0) {
 				have_inbox = true;
 			}
 		}
 		if (have_inbox) {
+			free(account->selected);
+			account->selected = strdup("INBOX");
 			worker_post_action(account->pipe, WORKER_SELECT_MAILBOX, NULL,
 					strdup("INBOX"));
 		}
+		rerender();
 		break;
 	}
 	case WORKER_LIST_ERROR:
@@ -95,7 +98,6 @@ int main(int argc, char **argv) {
 		struct account_state *account = calloc(1, sizeof(struct account_state));
 		account->name = strdup(ac->name);
 		account->pipe = worker_pipe_new();
-		account->mailboxes = create_list();
 		worker_post_action(account->pipe, WORKER_CONNECT, NULL, ac->source);
 		worker_post_action(account->pipe, WORKER_CONFIGURE, NULL, ac->extras);
 		// TODO: Detect appropriate worker based on source

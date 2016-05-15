@@ -30,7 +30,7 @@ void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *mess
 	 */
 	struct uri *uri = malloc(sizeof(struct uri));
 	if (!parse_uri(uri, (char *)message->data)) {
-		worker_log(L_ERROR, "Invalid connection string '%s'",
+		worker_log(L_DEBUG, "Invalid connection string '%s'",
 			(char*)message->data);
 	}
 	/*
@@ -42,7 +42,7 @@ void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *mess
 	} else if (strcmp(uri->scheme, "imaps") == 0) {
 		ssl = true;
 	} else {
-		worker_log(L_ERROR, "Unsupported protocol '%s'", uri->scheme);
+		worker_log(L_DEBUG, "Unsupported protocol '%s'", uri->scheme);
 		return;
 	}
 	/*
