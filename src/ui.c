@@ -75,7 +75,7 @@ void rerender() {
 	render_account_bar(0, 0, width, folder_width);
 	render_folder_list(0, 1, folder_width, height);
 	render_status(folder_width, height - 1, width - folder_width);
-	render_items(folder_width + 1, 1, height - 2, width - folder_width - 1);
+	render_items(folder_width, 1, width - folder_width, height - 2);
 
 	tb_present();
 }

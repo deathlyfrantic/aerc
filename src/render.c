@@ -6,6 +6,17 @@
 #include "render.h"
 #include "colors.h"
 
+static void clear_remaining(const char *color, int x, int y, int width, int height) {
+	struct tb_cell cell;
+	get_color(color, &cell);
+	cell.ch = ' ';
+	for (int _y = 0; _y < height; ++_y) {
+		for (int _x = 0; _x < width; ++_x) {
+			tb_put_cell(x + _x, y + _y, &cell);
+		}
+	}
+}
+
 void render_account_bar(int x, int y, int width, int folder_width) {
 	struct tb_cell cell;
 
@@ -35,9 +46,7 @@ void render_account_bar(int x, int y, int width, int folder_width) {
 		}
 		x += tb_printf(x, 0, &cell, " %s ", account->name);
 	}
-	get_color("borders", &cell);
-
-	while (x < width) tb_put_cell(x++, y, &cell);
+	clear_remaining("borders", x, y, width, 1);
 }
 
 static int compare_mailboxes(const void *_a, const void *_b) {
@@ -85,9 +94,12 @@ void render_folder_list(int x, int y, int width, int height) {
 				l++;
 			}
 		}
+		x = _x; ++y;
 	} else {
 		add_loading(x, y);
+		x = _x;
 	}
+	clear_remaining("folder-unselected", x, y, width - 1, height);
 }
 
 void render_status(int x, int y, int width) {
@@ -114,5 +126,7 @@ void render_status(int x, int y, int width) {
 }
 
 void render_items(int x, int y, int width, int height) {
+	clear_remaining("message-list-unselected", x, y, width, height);
+
 	add_loading(x, y);
 }
