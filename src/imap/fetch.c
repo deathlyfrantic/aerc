@@ -11,7 +11,7 @@
 #include "log.h"
 
 void imap_fetch(struct imap_connection *imap, imap_callback_t callback,
-		void *data, int min, int max, const imap_arg_t *fields) {
+		void *data, int min, int max, const char *what) {
 	// TODO: More optimal strategy for splitting up a range with intermetient
 	// fetching messages into several sub-ranges instead of sending each
 	// individually
@@ -33,9 +33,7 @@ void imap_fetch(struct imap_connection *imap, imap_callback_t callback,
 	if (seperate && false) {
 		// TODO
 	} else {
-		char *f = serialize_args(fields);
-		imap_send(imap, callback, data, "FETCH %d:%d %s", min, max, f);
-		free(f);
+		imap_send(imap, callback, data, "FETCH %d:%d (%s)", min, max, what);
 	}
 }
 

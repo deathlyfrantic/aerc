@@ -294,14 +294,14 @@ void print_imap_args(imap_arg_t *args, int indent) {
 		for (int i = indent; i; --i) printf(" ");
 		switch (args->type) {
 		case IMAP_NUMBER:
-			printf("%s %ld\n", types[args->type], args->num);
+			fprintf(stderr, "%s %ld\n", types[args->type], args->num);
 			break;
 		case IMAP_LIST:
-			printf("%s\n", types[args->type]);
+			fprintf(stderr, "%s\n", types[args->type]);
 			print_imap_args(args->list, indent + 2);
 			break;
 		default:
-			printf("%s %s\n", types[args->type], args->str);
+			fprintf(stderr, "%s %s\n", types[args->type], args->str);
 			break;
 		}
 		args = args->next;
