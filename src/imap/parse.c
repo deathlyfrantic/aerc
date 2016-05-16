@@ -184,6 +184,105 @@ void imap_arg_free(imap_arg_t *args) {
 	}
 }
 
+char *serialize_args(const imap_arg_t *args) {
+	const imap_arg_t *_args = args;
+	/*
+	 * Measure:
+	 */
+	int size = 0;
+	while (args) {
+		bool literal;
+		char *list;
+		switch (args->type) {
+		case IMAP_ATOM:
+			size += snprintf(NULL, 0, "%s", args->str);
+			break;
+		case IMAP_NUMBER:
+			size += snprintf(NULL, 0, "%ld", args->num);
+			break;
+		case IMAP_STRING:
+			literal = false;
+			for (size_t i = 0; i < strlen(args->str); ++i) {
+				const char *blacklist = "\\\"";
+				if (strchr(blacklist, args->str[i])) {
+					literal = true;
+					break;
+				}
+			}
+			if (literal) {
+				size += snprintf(NULL, 0, "{%zd}%s",
+						strlen(args->str), args->str);
+			} else {
+				size += snprintf(NULL, 0, "\"%s\"", args->str);
+			}
+			break;
+		case IMAP_LIST:
+			// TODO: Avoid doing the whole serialize thing twice
+			list = serialize_args(args->list);
+			size += snprintf(NULL, 0, "(%s)", list);
+			free(list);
+			break;
+		default:
+			break;
+		}
+		if (args->next) {
+			size++; // ' '
+		}
+		args = args->next;
+	}
+	/*
+	 * Allocate:
+	 */
+	char *result = malloc(size + 1);
+	char *_ = result;
+	args = _args;
+	/*
+	 * Print:
+	 */
+	while (args) {
+		bool literal;
+		char *list;
+		switch (args->type) {
+		case IMAP_ATOM:
+			_ += sprintf(_, "%s", args->str);
+			break;
+		case IMAP_NUMBER:
+			_ += sprintf(_, "%ld", args->num);
+			break;
+		case IMAP_STRING:
+			literal = false;
+			for (size_t i = 0; i < strlen(args->str); ++i) {
+				const char *blacklist = "\\\"";
+				if (strchr(blacklist, args->str[i])) {
+					literal = true;
+					break;
+				}
+			}
+			if (literal) {
+				_ += sprintf(_, "{%zd}%s",
+						strlen(args->str), args->str);
+			} else {
+				_ += sprintf(_, "\"%s\"", args->str);
+			}
+			break;
+		case IMAP_LIST:
+			list = serialize_args(args->list);
+			_ += sprintf(_, "(%s)", list);
+			free(list);
+			break;
+		default:
+			break;
+		}
+		if (args->next) {
+			*_ = ' ';
+			++_;
+		}
+		args = args->next;
+	}
+	*_ = '\0';
+	return result;
+}
+
 void print_imap_args(imap_arg_t *args, int indent) {
 	while (args) {
 		char *types[] = {

@@ -64,13 +64,26 @@ void handle_worker_connect_cert_check(struct account_state *account,
 void handle_worker_mailbox_updated(struct account_state *account,
 		struct worker_message *message) {
 	struct aerc_mailbox *new = message->data;
+	struct aerc_mailbox *old;
 	for (int i = 0; i < account->mailboxes->length; ++i) {
-		struct aerc_mailbox *old = account->mailboxes->items[i];
+		old = account->mailboxes->items[i];
 		if (strcmp(old->name, new->name) == 0) {
 			account->mailboxes->items[i] = new;
-			free_aerc_mailbox(old);
 			rerender();
 			break;
 		}
 	}
+
+	if (old->exists < new->exists) {
+		if (old->exists == -1) {
+			old->exists = 1;
+		}
+		struct message_range *range = malloc(sizeof(struct message_range));
+		range->min = old->exists;
+		range->max = new->exists;
+		worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
+				NULL, range);
+	}
+
+	free_aerc_mailbox(old);
 }

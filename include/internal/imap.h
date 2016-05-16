@@ -54,6 +54,7 @@ void handle_imap_readwrite(struct imap_connection *imap, const char *token,
 int imap_parse_args(const char *str, imap_arg_t *args);
 void imap_arg_free(imap_arg_t *args);
 void print_imap_args(imap_arg_t *args, int indent);
+char *serialize_args(const imap_arg_t *args);
 
 /*
  * Utility functions

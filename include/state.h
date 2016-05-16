@@ -32,6 +32,7 @@ struct account_state {
     char *name;
     list_t *mailboxes;
     char *selected;
+    int messages_pending[20];
 };
 
 struct aerc_state {

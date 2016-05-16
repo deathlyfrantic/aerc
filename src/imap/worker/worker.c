@@ -23,8 +23,9 @@ struct action_handler handlers[] = {
 	{ WORKER_LIST, handle_worker_list },
 	{ WORKER_SELECT_MAILBOX, handle_worker_select_mailbox },
 #ifdef USE_OPENSSL
-	{ WORKER_CONNECT_CERT_OKAY, handle_worker_cert_okay }
+	{ WORKER_CONNECT_CERT_OKAY, handle_worker_cert_okay },
 #endif
+	{ WORKER_FETCH_MESSAGES, handle_worker_fetch_messages },
 };
 
 void handle_message(struct worker_pipe *pipe, struct worker_message *message) {

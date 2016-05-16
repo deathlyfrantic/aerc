@@ -41,6 +41,13 @@ enum worker_message_type {
     WORKER_SELECT_MAILBOX_ERROR,
     /* Notifications */
     WORKER_MAILBOX_UPDATED,
+    /* Messages */
+    WORKER_FETCH_MESSAGES,
+    WORKER_FETCH_MESSAGES_DONE,
+    WORKER_FETCH_MESSAGES_ERROR,
+    WORKER_FETCH_MESSAGE_FULL,
+    WORKER_FETCH_MESSAGES_FULL_DONE,
+    WORKER_FETCH_MESSAGES_FULL_ERROR,
 };
 
 struct worker_pipe {
@@ -56,6 +63,10 @@ struct worker_message {
     enum worker_message_type type;
     struct worker_message *in_response_to;
     void *data;
+};
+
+struct message_range {
+    int min, max;
 };
 
 struct aerc_message {

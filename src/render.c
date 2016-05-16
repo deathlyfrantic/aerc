@@ -137,13 +137,14 @@ void render_items(int x, int y, int width, int height) {
 		return;
 	}
 
-	for (int i = 0; i < mailbox->messages->length; ++i) {
+	for (int i = account->ui.list_offset;
+			i < mailbox->messages->length && y < height;
+			++i, ++y) {
 		struct aerc_message *message = mailbox->messages->items[i];
 		if (!message) {
 			add_loading(x, y);
 		} else {
 			// TODO
 		}
-		y++;
 	}
 }

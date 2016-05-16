@@ -14,6 +14,7 @@
 #include "handlers.h"
 #include "absocket.h"
 #include "worker.h"
+#include "internal/imap.h"
 #include "imap/worker.h"
 #include "log.h"
 #include "config.h"
