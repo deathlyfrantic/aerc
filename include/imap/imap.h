@@ -55,6 +55,11 @@ struct mailbox {
 };
 
 struct imap_connection {
+    struct {
+        void (*mailbox_updated)(struct imap_connection *);
+    } events;
+
+    void *data;
     bool logged_in;
     absocket_t *socket;
     enum recv_mode mode;

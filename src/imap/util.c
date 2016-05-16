@@ -30,6 +30,7 @@ struct mailbox *get_or_make_mailbox(struct imap_connection *imap,
 		mbox->name = strdup(name);
 		mbox->flags = create_list();
 		mbox->messages = create_list();
+		mbox->exists = mbox->unseen = mbox->recent = -1;
 		list_add(imap->mailboxes, mbox);
 	}
 	return mbox;

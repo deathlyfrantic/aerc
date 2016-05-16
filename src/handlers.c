@@ -55,8 +55,22 @@ void handle_worker_list_error(struct account_state *account,
 void handle_worker_connect_cert_check(struct account_state *account,
 		struct worker_message *message) {
 #ifdef USE_OPENSSL
-		// TODO: interactive certificate check
-		worker_post_action(account->worker.pipe, WORKER_CONNECT_CERT_OKAY,
-				message, NULL);
+	// TODO: interactive certificate check
+	worker_post_action(account->worker.pipe, WORKER_CONNECT_CERT_OKAY,
+			message, NULL);
 #endif
+}
+
+void handle_worker_mailbox_updated(struct account_state *account,
+		struct worker_message *message) {
+	struct aerc_mailbox *new = message->data;
+	for (int i = 0; i < account->mailboxes->length; ++i) {
+		struct aerc_mailbox *old = account->mailboxes->items[i];
+		if (strcmp(old->name, new->name) == 0) {
+			account->mailboxes->items[i] = new;
+			free_aerc_mailbox(old);
+			rerender();
+			break;
+		}
+	}
 }

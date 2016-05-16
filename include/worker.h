@@ -37,6 +37,10 @@ enum worker_message_type {
     WORKER_LIST_ERROR,
     /* Selection */
     WORKER_SELECT_MAILBOX,
+    WORKER_SELECT_MAILBOX_DONE,
+    WORKER_SELECT_MAILBOX_ERROR,
+    /* Notifications */
+    WORKER_MAILBOX_UPDATED,
 };
 
 struct worker_pipe {
@@ -56,7 +60,10 @@ struct worker_message {
 
 struct aerc_mailbox {
     char *name;
+    bool read_write;
+    long exists, recent, unseen;
     list_t *flags;
+    list_t *messages;
 };
 
 #ifdef USE_OPENSSL

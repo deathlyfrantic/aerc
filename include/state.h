@@ -43,5 +43,8 @@ extern struct aerc_state *state;
 
 void set_status(struct account_state *account, enum account_status state,
         const char *text);
+struct aerc_mailbox *get_aerc_mailbox(struct account_state *account,
+        const char *name);
+void free_aerc_mailbox(struct aerc_mailbox *mbox);
 
 #endif
