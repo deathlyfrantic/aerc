@@ -38,7 +38,7 @@ struct imap_pending_callback *make_callback(imap_callback_t callback, void *data
 	return cb;
 }
 
-void handle_line(struct imap_connection *imap, const char *line) {
+int handle_line(struct imap_connection *imap, const char *line) {
 	/*
 	 * Handles one full IMAP command from the server. First, we split the line
 	 * up by spaces.
@@ -47,7 +47,7 @@ void handle_line(struct imap_connection *imap, const char *line) {
 	if (split->length < 2) {
 		free_flat_list(split);
 		worker_log(L_DEBUG, "Got malformed IMAP command: %s", line);
-		return;
+		return 0;
 	}
 	worker_log(L_DEBUG, "<- %s", line);
 	/*
@@ -86,14 +86,22 @@ void handle_line(struct imap_connection *imap, const char *line) {
 		char *joined = join_args((char **)(split->items + 2),
 				split->length - 2);
 		imap_arg_t *arg = calloc(1, sizeof(imap_arg_t));
-		/*TODO: int remaining = */imap_parse_args(joined, arg);
-		handler(imap, split->items[0], split->items[1], arg);
+		int remaining = imap_parse_args(joined, arg);
+		if (remaining > 0) {
+			free(joined);
+			imap_arg_free(arg);
+			free_flat_list(split);
+			return remaining;
+		} else {
+			handler(imap, split->items[0], split->items[1], arg);
+		}
 		free(joined);
 		imap_arg_free(arg);
 	} else {
 		worker_log(L_DEBUG, "Recieved unknown IMAP command: %s", line);
 	}
 	free_flat_list(split);
+	return 0;
 }
 
 void imap_send(struct imap_connection *imap, imap_callback_t callback,
@@ -186,10 +194,24 @@ void imap_receive(struct imap_connection *imap) {
 			 * Here we select lines from the buffer and pass them along to
 			 * handle_line.
 			 */
+			if (imap->line_offset > (int)strlen(imap->line)) {
+				/* Need more data */
+				return;
+			}
 			char *esc;
-			while ((esc = strstr(imap->line, "\r\n"))) {
+			while ((esc = strstr(imap->line + imap->line_offset, "\r\n"))) {
 				*esc = '\0';
-				handle_line(imap, imap->line);
+				if (imap->line_offset > 0) {
+					worker_log(L_DEBUG, "Handling packet again");
+				}
+				int remaining = handle_line(imap, imap->line);
+				if (remaining > 0) {
+					/* Need to recieve more packet */
+					*esc = '\r';
+					imap->line_offset = (esc - imap->line + 2) + remaining;
+					break;
+				}
+				imap->line_offset = 0;
 				/* After handling each line, we shift the remaining data off to
 				 * the start of the buffer. */
 				memmove(imap->line, esc + 2, imap->line_size - (esc - imap->line + 2));

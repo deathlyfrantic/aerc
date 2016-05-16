@@ -71,6 +71,9 @@ void handle_imap_fetch(struct imap_connection *imap, const char *token,
 	while (args) {
 		const char *name = args->str;
 		args = args->next;
+		if (!args) {
+			break;
+		}
 		for (size_t i = 0;
 				i < sizeof(handlers) / (sizeof(void *) * 2 + sizeof(enum imap_type));
 				++i) {

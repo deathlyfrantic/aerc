@@ -9,7 +9,7 @@ struct imap_pending_callback {
     void *data;
 };
 
-void handle_line(struct imap_connection *imap, const char *line);
+int handle_line(struct imap_connection *imap, const char *line);
 
 void init_status_handlers();
 void handle_imap_status(struct imap_connection *imap, const char *token,

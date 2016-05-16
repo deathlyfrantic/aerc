@@ -31,8 +31,7 @@ enum imap_status {
 
 enum recv_mode {
     RECV_WAIT,
-    RECV_LINE,
-    RECV_BULK
+    RECV_LINE
 };
 
 struct imap_connection;
@@ -74,6 +73,7 @@ struct imap_connection {
     enum recv_mode mode;
     char *line;
     int line_index, line_size;
+    int line_offset; // For literal strings
     struct pollfd poll[1];
     int next_tag;
     hashtable_t *pending;

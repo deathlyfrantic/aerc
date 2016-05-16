@@ -135,6 +135,9 @@ static int _imap_parse_args(const char **str, imap_arg_t *args) {
 			remaining = _imap_parse_args(str, args->list);
 			if (remaining > 0 || **str != ')') {
 				// Incomplete list
+				if (remaining == 0) {
+					remaining = 1;
+				}
 				return remaining;
 			}
 			(*str)++; // advance past )
