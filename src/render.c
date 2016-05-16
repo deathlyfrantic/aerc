@@ -128,5 +128,22 @@ void render_status(int x, int y, int width) {
 void render_items(int x, int y, int width, int height) {
 	clear_remaining("message-list-unselected", x, y, width, height);
 
-	add_loading(x, y);
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	struct aerc_mailbox *mailbox = get_aerc_mailbox(account, account->selected);
+
+	if (!mailbox || !mailbox->messages) {
+		add_loading(x + width / 2, y);
+		return;
+	}
+
+	for (int i = 0; i < mailbox->messages->length; ++i) {
+		struct aerc_message *message = mailbox->messages->items[i];
+		if (!message) {
+			add_loading(x, y);
+		} else {
+			// TODO
+		}
+		y++;
+	}
 }

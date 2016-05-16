@@ -48,11 +48,14 @@ struct aerc_mailbox *serialize_mailbox(struct mailbox *source) {
 	dest->recent = source->recent;
 	dest->unseen = source->unseen;
 	dest->flags = create_list();
-	for (int j = 0; j < source->flags->length; ++j) {
-		list_add(dest->flags, strdup(source->flags->items[j]));
+	for (int i = 0; i < source->flags->length; ++i) {
+		list_add(dest->flags, strdup(source->flags->items[i]));
 	}
 	dest->messages = create_list();
-	// TODO: copy messages
+	for (int i = 0; i < source->messages->length; ++i) {
+		// TODO: dupe the message
+		list_add(dest->messages, source->messages->items[i]);
+	}
 	return dest;
 }
 

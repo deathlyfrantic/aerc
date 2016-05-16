@@ -58,6 +58,11 @@ struct worker_message {
     void *data;
 };
 
+struct aerc_message {
+    // TODO: Fill out this struct more
+    char *subject;
+};
+
 struct aerc_mailbox {
     char *name;
     bool read_write;

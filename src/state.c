@@ -28,7 +28,7 @@ static int get_mbox_compare(const void *_mbox, const void *_name) {
 
 struct aerc_mailbox *get_aerc_mailbox(struct account_state *account,
 		const char *name) {
-	if (!account->mailboxes) {
+	if (!account->mailboxes || !name) {
 		return NULL;
 	}
 	int i = list_seq_find(account->mailboxes, get_mbox_compare, name);
