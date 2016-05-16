@@ -259,6 +259,8 @@ char *serialize_args(const imap_arg_t *args) {
 				}
 			}
 			if (literal) {
+				// TODO: I think these require a thing from the server before
+				// you proceed. Check this.
 				_ += sprintf(_, "{%zd}%s",
 						strlen(args->str), args->str);
 			} else {
