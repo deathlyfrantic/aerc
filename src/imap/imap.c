@@ -238,6 +238,7 @@ void imap_init(struct imap_connection *imap) {
 		hashtable_set(internal_handlers, "READ-WRITE", handle_imap_readwrite);
 		hashtable_set(internal_handlers, "UIDVALIDITY", handle_noop);
 		hashtable_set(internal_handlers, "HIGHESTMODSET", handle_noop); // RFC 4551
+		hashtable_set(internal_handlers, "FETCH", handle_imap_fetch);
 	}
 }
 

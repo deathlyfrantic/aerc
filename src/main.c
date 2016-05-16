@@ -59,7 +59,12 @@ void init_state() {
 
 int main(int argc, char **argv) {
 	init_state();
-	init_log(L_INFO); // TODO: Customizable
+	 // TODO: Customizable
+	if (!isatty(STDERR_FILENO)) {
+		init_log(L_DEBUG);
+	} else {
+		init_log(L_ERROR);
+	}
 	abs_init();
 	colors_init();
 

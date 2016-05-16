@@ -45,6 +45,14 @@ struct mailbox_flag {
     bool permanent;
 };
 
+struct mailbox_message {
+    bool fetching, populated;
+    long uid;
+    list_t *flags;
+    char *subject;
+    // TODO: More
+};
+
 struct mailbox {
     list_t *flags;
     list_t *messages;
@@ -57,6 +65,7 @@ struct mailbox {
 struct imap_connection {
     struct {
         void (*mailbox_updated)(struct imap_connection *);
+        void (*message_updated)(struct imap_connection *, struct mailbox_message *);
     } events;
 
     void *data;
@@ -75,6 +84,28 @@ struct imap_connection {
     char *selected;
 };
 
+enum imap_type {
+    IMAP_ATOM,      /* imap->str is valid */
+    IMAP_NUMBER,    /* imap->num is valid */
+    IMAP_STRING,    /* imap->str is valid */
+    IMAP_LIST,      /* imap->list is valid */
+    IMAP_RESPONSE,  /* imap->str is valid */
+    IMAP_NIL        /* Not actually used, will be IMAP_ATOM and imap->str will
+                       equal "NIL" */
+};
+
+struct imap_arg {
+    enum imap_type type;
+    struct imap_arg *next;
+    char *str;
+    long num;
+    struct imap_arg *list;
+    char *original;
+};
+typedef struct imap_arg imap_arg_t;
+
+void imap_arg_free(imap_arg_t *args);
+
 bool imap_connect(struct imap_connection *imap, const struct uri *uri,
 		bool use_ssl, imap_callback_t callback, void *data);
 void imap_receive(struct imap_connection *imap);
@@ -88,5 +119,7 @@ void imap_capability(struct imap_connection *imap, imap_callback_t callback,
         void *data);
 void imap_select(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *mailbox);
+void imap_fetch(struct imap_connection *imap, imap_callback_t callback,
+		void *data, int min, int max, const imap_arg_t *fields);
 
 #endif

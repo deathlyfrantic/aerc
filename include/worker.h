@@ -48,6 +48,7 @@ enum worker_message_type {
     WORKER_FETCH_MESSAGE_FULL,
     WORKER_FETCH_MESSAGES_FULL_DONE,
     WORKER_FETCH_MESSAGES_FULL_ERROR,
+    WORKER_MESSAGE_UPDATED,
 };
 
 struct worker_pipe {

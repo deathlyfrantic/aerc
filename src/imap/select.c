@@ -37,18 +37,15 @@ void handle_imap_existsunseenrecent(struct imap_connection *imap, const char *to
 		if (strcmp(ptrs[i].cmd, cmd) == 0) {
 			set = true;
 			if (i == 0 /* EXISTS */) {
-				/*
-				 * We keep NULL messages in the message list so that they all
-				 * have the right indexes, even if we don't have that particular
-				 * message yet.
-				 */
 				int diff = args->num - mbox->exists;
 				if (mbox->exists == -1) {
 					diff = args->num;
 				}
 				if (diff > 0) {
 					while (diff--) {
-						list_insert(mbox->messages, 0, NULL);
+						struct mailbox_message *msg = calloc(1,
+								sizeof(struct mailbox_message));
+						list_insert(mbox->messages, 0, msg);
 					}
 				} else {
 					worker_log(L_ERROR, "Got EXISTS with negative diff, not supposed to happen");

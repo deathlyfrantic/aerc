@@ -74,7 +74,7 @@ static char *parse_atom(const char **str) {
 	char *end;
 	char *paren = strchr(*str, ')');
 	char *space = strchr(*str, ' ');
-	if (paren && paren < space) end = paren;
+	if (paren && (!space || paren < space)) end = paren;
 	else end = space;
 
 	if (!end) {
