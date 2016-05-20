@@ -32,6 +32,7 @@ static char *parse_string(const char **str, int *remaining) {
 			// We don't have the complete string, but we also don't know how
 			// long the completed string is. Just return 1 here.
 			*remaining = 1;
+			while (**str) (*str)++;
 			return NULL;
 		}
 		/* Allocate space for the string and copy it in, then advance *str */
@@ -51,6 +52,7 @@ static char *parse_string(const char **str, int *remaining) {
 			// We don't have the full string. Return the expected length of the
 			// string.
 			*remaining = (int)(len - strlen(*str));
+			while (**str) (*str)++;
 			return NULL;
 		}
 		/* Allocate space for the string and copy it in, then advance *str */
