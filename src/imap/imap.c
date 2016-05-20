@@ -176,9 +176,6 @@ void imap_receive(struct imap_connection *imap) {
 			 */
 			int remaining = 0;
 			while (!remaining) {
-				if (strncmp(imap->line, "* 1 FETCH", 9) == 0) {
-					worker_log(L_DEBUG, "asdf");
-				}
 				imap_arg_t *arg = calloc(1, sizeof(imap_arg_t));
 				int len = imap_parse_args(imap->line, arg, &remaining);
 				if (remaining == 0) {
@@ -189,8 +186,9 @@ void imap_receive(struct imap_connection *imap) {
 
 					handle_line(imap, arg);
 				}
+				imap->line_index += len;
 				imap_arg_free(arg);
-				if (len > 0) {
+				if (len > 0 && remaining == 0) {
 					memmove(imap->line, imap->line + len, imap->line_size - len);
 					imap->line_index = 0;
 				}

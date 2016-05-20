@@ -73,7 +73,6 @@ struct imap_connection {
     enum recv_mode mode;
     char *line;
     int line_index, line_size;
-    int line_offset; // For literal strings
     struct pollfd poll[1];
     int next_tag;
     hashtable_t *pending;
