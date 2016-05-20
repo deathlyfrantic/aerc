@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <poll.h>
+#include <assert.h>
 #include <stdarg.h>
 #include "util/hashtable.h"
 #include "util/stringop.h"
@@ -38,18 +39,8 @@ struct imap_pending_callback *make_callback(imap_callback_t callback, void *data
 	return cb;
 }
 
-int handle_line(struct imap_connection *imap, const char *line) {
-	/*
-	 * Handles one full IMAP command from the server. First, we split the line
-	 * up by spaces.
-	 */
-	list_t *split = split_string(line, " ");
-	if (split->length < 2) {
-		free_flat_list(split);
-		worker_log(L_DEBUG, "Got malformed IMAP command: %s", line);
-		return 0;
-	}
-	worker_log(L_DEBUG, "<- %s", line);
+int handle_line(struct imap_connection *imap, imap_arg_t *arg) {
+	assert(arg && arg->next); // At least a tag and command
 	/*
 	 * We grab a handler based on the IMAP command in question. IMAP commands
 	 * are formatted like this:
@@ -61,9 +52,7 @@ int handle_line(struct imap_connection *imap, const char *line) {
 	 * thing, but can often be * to provide updates to aerc's internal state, or
 	 * meta responses. Our hashtable is keyed on the command string.
 	 */
-	char *end = split->items[1];
-	strtol(split->items[1], &end, 10);
-	if (!*end) {
+	if (arg->next && arg->next->type == IMAP_NUMBER) {
 		/*
 		 * Some commands (namely EXISTS and RECENT) are formatted like so:
 		 *
@@ -72,35 +61,26 @@ int handle_line(struct imap_connection *imap, const char *line) {
 		 * Which is fucking stupid. But we handle that here by checking if the
 		 * command name is a number and then rearranging it.
 		 */
-		void *temp = split->items[1];
-		split->items[1] = split->items[2];
-		split->items[2] = temp;
+		imap_arg_t *num = arg->next;
+		imap_arg_t *cmd = num->next;
+		imap_arg_t *rest = cmd->next;
+		cmd->next = num;
+		num->next = rest;
+		arg->next = cmd;
 	}
-	imap_handler_t handler = hashtable_get(internal_handlers, split->items[1]);
+	assert(arg->type == IMAP_ATOM);
+	assert(arg->next->type == IMAP_ATOM);
+	imap_handler_t handler = hashtable_get(internal_handlers, arg->next->str);
 	if (handler) {
 		/*
 		 * Here we join the arguments - the [...] from above, then parse this as
 		 * an IMAP argument list (which has special syntax and semantic
 		 * meaning). Then we invoke our internal handler for this IMAP command.
 		 */
-		char *joined = join_args((char **)(split->items + 2),
-				split->length - 2);
-		imap_arg_t *arg = calloc(1, sizeof(imap_arg_t));
-		int remaining = imap_parse_args(joined, arg);
-		if (remaining > 0) {
-			free(joined);
-			imap_arg_free(arg);
-			free_flat_list(split);
-			return remaining;
-		} else {
-			handler(imap, split->items[0], split->items[1], arg);
-		}
-		free(joined);
-		imap_arg_free(arg);
+		handler(imap, arg->str, arg->next->str, arg->next->next);
 	} else {
-		worker_log(L_DEBUG, "Recieved unknown IMAP command: %s", line);
+		worker_log(L_DEBUG, "Recieved unknown IMAP command: %s", arg->str);
 	}
-	free_flat_list(split);
 	return 0;
 }
 
@@ -194,28 +174,26 @@ void imap_receive(struct imap_connection *imap) {
 			 * Here we select lines from the buffer and pass them along to
 			 * handle_line.
 			 */
-			if (imap->line_offset > (int)strlen(imap->line)) {
-				/* Need more data */
-				return;
-			}
-			char *esc;
-			while ((esc = strstr(imap->line + imap->line_offset, "\r\n"))) {
-				*esc = '\0';
-				if (imap->line_offset > 0) {
-					worker_log(L_DEBUG, "Handling packet again");
+			int remaining = 0;
+			while (!remaining) {
+				if (strncmp(imap->line, "* 1 FETCH", 9) == 0) {
+					worker_log(L_DEBUG, "asdf");
 				}
-				int remaining = handle_line(imap, imap->line);
-				if (remaining > 0) {
-					/* Need to recieve more packet */
-					*esc = '\r';
-					imap->line_offset = (esc - imap->line + 2) + remaining;
-					break;
+				imap_arg_t *arg = calloc(1, sizeof(imap_arg_t));
+				int len = imap_parse_args(imap->line, arg, &remaining);
+				if (remaining == 0) {
+					char c = imap->line[len];
+					imap->line[len] = '\0';
+					worker_log(L_DEBUG, "Handling %s", imap->line);
+					imap->line[len] = c;
+
+					handle_line(imap, arg);
 				}
-				imap->line_offset = 0;
-				/* After handling each line, we shift the remaining data off to
-				 * the start of the buffer. */
-				memmove(imap->line, esc + 2, imap->line_size - (esc - imap->line + 2));
-				imap->line_index = 0;
+				imap_arg_free(arg);
+				if (len > 0) {
+					memmove(imap->line, imap->line + len, imap->line_size - len);
+					imap->line_index = 0;
+				}
 			}
 		}
 	}

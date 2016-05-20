@@ -32,7 +32,11 @@ void handle_imap_status(struct imap_connection *imap, const char *token,
 		char *status = malloc(len + 1);
 		strcpy(status, prefix);
 		strcat(status, args->str);
-		handle_line(imap, status);
+		imap_arg_t *a = calloc(1, sizeof(imap_arg_t));
+		int _;
+		imap_parse_args(status, a, &_);
+		handle_line(imap, a);
+		imap_arg_free(a);
 		free(status);
 		args = args->next;
 	}

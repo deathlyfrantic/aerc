@@ -71,11 +71,12 @@ static char *parse_atom(const char **str) {
 	 * the one that's closest ahead and get just copy the text into a new
 	 * string.
 	 */
-	char *end;
-	char *paren = strchr(*str, ')');
-	char *space = strchr(*str, ' ');
-	if (paren && (!space || paren < space)) end = paren;
-	else end = space;
+	char *end = NULL;
+	char *delims = " )[\r";
+	for (size_t i = 0; i < sizeof(delims) - 1; ++i) {
+		char *_ = strchr(*str, delims[i]);
+		if (_ && (!end || _ < end)) end = _;
+	}
 
 	if (!end) {
 		char *_ = strdup(*str);
@@ -111,7 +112,9 @@ static char *parse_status_response(const char **str) {
 static int _imap_parse_args(const char **str, imap_arg_t *args) {
 	assert(args && str);
 	int remaining = 0;
-	while (**str && **str != ')' /* ) for recursive list parsing */) {
+	while (**str
+			&& **str != ')' /* ) for recursive list parsing */
+			&& **str != '\r' /* end of args */) {
 		if (isdigit(**str)) {
 			args->type = IMAP_NUMBER;
 			args->num = parse_number(str);
@@ -119,7 +122,7 @@ static int _imap_parse_args(const char **str, imap_arg_t *args) {
 			args->type = IMAP_STRING;
 			args->str = parse_string(str, &remaining);
 			if (remaining > 0) {
-				return remaining;
+				break;
 			}
 		} else if (**str == '[') {
 			args->type = IMAP_RESPONSE;
@@ -133,12 +136,16 @@ static int _imap_parse_args(const char **str, imap_arg_t *args) {
 			 * arg strings.
 			 */
 			remaining = _imap_parse_args(str, args->list);
+			if (remaining == 2) {
+				// the recursive call will complain about the lack of CRLF
+				remaining = 0;
+			}
 			if (remaining > 0 || **str != ')') {
 				// Incomplete list
 				if (remaining == 0) {
 					remaining = 1;
 				}
-				return remaining;
+				break;
 			}
 			(*str)++; // advance past )
 			if (args->list->type == IMAP_ATOM && !args->list->str) {
@@ -157,7 +164,7 @@ static int _imap_parse_args(const char **str, imap_arg_t *args) {
 			args->str = parse_atom(str);
 		}
 		if (**str == ' ') (*str)++;
-		if (**str && **str != ')') {
+		if (**str && **str != ')' && **str != '\r') {
 			/*
 			 * If we aren't at the end of the loop, allocate the next
 			 * argument.
@@ -167,13 +174,25 @@ static int _imap_parse_args(const char **str, imap_arg_t *args) {
 			prev->next = args;
 		}
 	}
+	if (**str == '\r') {
+		(*str)++;
+		if (**str == '\n') {
+			(*str)++;
+		} else {
+			remaining++;
+		}
+	} else {
+		remaining += 2;
+	}
 	return remaining;
 }
 
-int imap_parse_args(const char *str, imap_arg_t *args) {
-	int r = _imap_parse_args(&str, args);
+int imap_parse_args(const char *str, imap_arg_t *args, int *remaining) {
+	memset(args, 0, sizeof(imap_arg_t));
+	const char *orig = str;
 	args->original = strdup(str);
-	return r;
+	*remaining = _imap_parse_args(&str, args);
+	return (int)(str - orig); // len
 }
 
 void imap_arg_free(imap_arg_t *args) {
@@ -288,23 +307,23 @@ char *serialize_args(const imap_arg_t *args) {
 	return result;
 }
 
-void print_imap_args(imap_arg_t *args, int indent) {
+void print_imap_args(FILE *f, imap_arg_t *args, int indent) {
 	while (args) {
 		char *types[] = {
 			"ATOM", "NUMBER", "STRING",
-			"LIST", "NIL"
+			"LIST", "RESPONSE", "NIL"
 		};
-		for (int i = indent; i; --i) printf(" ");
+		for (int i = indent; i; --i) fprintf(f, " ");
 		switch (args->type) {
 		case IMAP_NUMBER:
-			fprintf(stderr, "%s %ld\n", types[args->type], args->num);
+			fprintf(f, "%s %ld\n", types[args->type], args->num);
 			break;
 		case IMAP_LIST:
-			fprintf(stderr, "%s\n", types[args->type]);
-			print_imap_args(args->list, indent + 2);
+			fprintf(f, "%s\n", types[args->type]);
+			print_imap_args(f, args->list, indent + 2);
 			break;
 		default:
-			fprintf(stderr, "%s %s\n", types[args->type], args->str);
+			fprintf(f, "%s %s\n", types[args->type], args->str);
 			break;
 		}
 		args = args->next;
