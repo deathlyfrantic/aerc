@@ -2,7 +2,7 @@
 
 Asynchronous Email Reading Client
 
-![](https://sr.ht/0_h3.png)
+![](https://sr.ht/X_w_.png)
 
 This is a WIP email client for your terminal.
 
