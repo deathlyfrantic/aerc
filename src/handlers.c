@@ -64,7 +64,8 @@ void handle_worker_connect_cert_check(struct account_state *account,
 void handle_worker_mailbox_updated(struct account_state *account,
 		struct worker_message *message) {
 	struct aerc_mailbox *new = message->data;
-	struct aerc_mailbox *old;
+	struct aerc_mailbox *old = NULL;
+
 	for (int i = 0; i < account->mailboxes->length; ++i) {
 		old = account->mailboxes->items[i];
 		if (strcmp(old->name, new->name) == 0) {
@@ -72,6 +73,10 @@ void handle_worker_mailbox_updated(struct account_state *account,
 			rerender();
 			break;
 		}
+	}
+
+	if (!old) {
+		return;
 	}
 
 	if (old->exists < new->exists) {
