@@ -2,10 +2,9 @@
 
 Asynchronous Email Reading Client
 
----
+![](https://sr.ht/0_h3.png)
 
-This is a WIP email client for your terminal. Currently, there's no UI - I'm
-just working on the IMAP code right now.
+This is a WIP email client for your terminal.
 
     mkdir build
     cd build
@@ -13,9 +12,4 @@ just working on the IMAP code right now.
     make
     sudo make install
 
-To run this, set an environment variable `CS` equal to a connection string in
-this format:
-
-    imap(s)://username:password@mail.example.org(:port)
-
-Eventually it'll be configurable.
+Copy config/* to ~/.config/aerc/ and edit them to your liking.
