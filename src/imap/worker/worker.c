@@ -42,6 +42,27 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 	worker_post_message(pipe, WORKER_UNSUPPORTED, message, NULL);
 }
 
+struct aerc_message *serialize_message(struct mailbox_message *source) {
+	if (!source || !source->populated) return NULL;
+	struct aerc_message *dest = calloc(1, sizeof(struct aerc_message));
+	dest->uid = source->uid;
+	dest->flags = create_list();
+	for (int i = 0; i < source->flags->length; ++i) {
+		list_add(dest->flags, strdup(source->flags->items[i]));
+	}
+	dest->headers = create_list();
+	for (int i = 0; i < source->headers->length; ++i) {
+		struct email_header *header = source->headers->items[i];
+		struct email_header *copy = malloc(sizeof(struct email_header));
+		copy->key = strdup(header->key);
+		copy->value = strdup(header->value);
+		list_add(dest->headers, copy);
+	}
+	dest->internal_date = calloc(1, sizeof(struct tm));
+	memcpy(dest->internal_date, source->internal_date, sizeof(struct tm));
+	return dest;
+}
+
 struct aerc_mailbox *serialize_mailbox(struct mailbox *source) {
 	struct aerc_mailbox *dest = calloc(1, sizeof(struct mailbox));
 	dest->name = strdup(source->name);
@@ -54,8 +75,7 @@ struct aerc_mailbox *serialize_mailbox(struct mailbox *source) {
 	}
 	dest->messages = create_list();
 	for (int i = 0; i < source->messages->length; ++i) {
-		// TODO: dupe the message
-		list_add(dest->messages, source->messages->items[i]);
+		list_add(dest->messages, serialize_message(source->messages->items[i]));
 	}
 	return dest;
 }
@@ -71,6 +91,13 @@ static void update_mailbox(struct imap_connection *imap) {
 	worker_post_message(pipe, WORKER_MAILBOX_UPDATED, NULL, mbox);
 }
 
+static void update_message(struct imap_connection *imap,
+		struct mailbox_message *msg) {
+	struct aerc_message *aerc_msg = serialize_message(msg);
+	struct worker_pipe *pipe = imap->data;
+	worker_post_message(pipe, WORKER_MESSAGE_UPDATED, NULL, aerc_msg);
+}
+
 void *imap_worker(void *_pipe) {
 	/*
 	 * The IMAP worker's main thread. Receives messages over the async queue and
@@ -82,6 +109,7 @@ void *imap_worker(void *_pipe) {
 	pipe->data = imap;
 	imap->data = pipe;
 	imap->events.mailbox_updated = update_mailbox;
+	imap->events.message_updated = update_message;
 	worker_log(L_DEBUG, "Starting IMAP worker");
 	while (1) {
 		/*

@@ -43,12 +43,8 @@ enum worker_message_type {
     WORKER_MAILBOX_UPDATED,
     /* Messages */
     WORKER_FETCH_MESSAGES,
-    WORKER_FETCH_MESSAGES_DONE,
-    WORKER_FETCH_MESSAGES_ERROR,
     WORKER_FETCH_MESSAGE_FULL,
-    WORKER_FETCH_MESSAGES_FULL_DONE,
-    WORKER_FETCH_MESSAGES_FULL_ERROR,
-    WORKER_MESSAGE_UPDATED,
+    WORKER_MESSAGE_UPDATED
 };
 
 struct worker_pipe {
@@ -71,8 +67,9 @@ struct message_range {
 };
 
 struct aerc_message {
-    // TODO: Fill out this struct more
-    char *subject;
+    long uid;
+    list_t *flags, *headers;
+    struct tm *internal_date;
 };
 
 struct aerc_mailbox {

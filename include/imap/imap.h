@@ -49,7 +49,6 @@ struct mailbox_message {
     bool fetching, populated;
     long uid;
     list_t *flags, *headers;
-    char *subject;
     struct tm *internal_date;
 };
 

@@ -6,6 +6,7 @@
 
 void *imap_worker(void *_pipe);
 struct aerc_mailbox *serialize_mailbox(struct mailbox *source);
+struct aerc_message *serialize_message(struct mailbox_message *source);
 // Worker handlers
 void handle_worker_connect(struct worker_pipe *pipe, struct worker_message *message);
 void handle_worker_cert_okay(struct worker_pipe *pipe, struct worker_message *message);
