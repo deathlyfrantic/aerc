@@ -37,12 +37,14 @@ include_directories(
 
 FILE(GLOB src ${PROJECT_SOURCE_DIR}/src/*.c)
 FILE(GLOB util ${PROJECT_SOURCE_DIR}/src/util/*.c)
+FILE(GLOB email ${PROJECT_SOURCE_DIR}/src/email/*.c)
 FILE(GLOB imap ${PROJECT_SOURCE_DIR}/src/imap/*.c)
 FILE(GLOB imap_worker ${PROJECT_SOURCE_DIR}/src/imap/worker/*.c)
 
 add_executable(aerc
     ${src}
     ${util}
+    ${email}
     ${imap}
     ${imap_worker}
 )

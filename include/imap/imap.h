@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <poll.h>
 #include <stdarg.h>
+#include "email/headers.h"
 #include "util/list.h"
 #include "util/hashtable.h"
 #include "urlparse.h"
@@ -47,9 +48,9 @@ struct mailbox_flag {
 struct mailbox_message {
     bool fetching, populated;
     long uid;
-    list_t *flags;
+    list_t *flags, *headers;
     char *subject;
-    // TODO: More
+    struct tm *internal_date, *header_date;
 };
 
 struct mailbox {

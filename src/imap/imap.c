@@ -176,9 +176,16 @@ void imap_receive(struct imap_connection *imap) {
 			 */
 			int remaining = 0;
 			while (!remaining) {
+				/*
+				 * Attempt to parse what we've got:
+				 */
 				imap_arg_t *arg = calloc(1, sizeof(imap_arg_t));
 				int len = imap_parse_args(imap->line, arg, &remaining);
 				if (remaining == 0) {
+					/*
+					 * If we got a complete IMAP command, pass it along to the
+					 * handlers:
+					 */
 					char c = imap->line[len];
 					imap->line[len] = '\0';
 					worker_log(L_DEBUG, "Handling %s", imap->line);
@@ -187,6 +194,11 @@ void imap_receive(struct imap_connection *imap) {
 					handle_line(imap, arg);
 				}
 				imap_arg_free(arg);
+				/*
+				 * If we got a full command, shift the end of the buffer up to
+				 * the top and loop. Otherwise, append further bytes to the end
+				 * of the buffer and move on.
+				 */
 				if (len > 0 && remaining == 0) {
 					memmove(imap->line, imap->line + len, imap->line_size - len);
 					imap->line_index = 0;
