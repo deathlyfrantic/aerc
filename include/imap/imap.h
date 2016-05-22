@@ -50,7 +50,7 @@ struct mailbox_message {
     long uid;
     list_t *flags, *headers;
     char *subject;
-    struct tm *internal_date, *header_date;
+    struct tm *internal_date;
 };
 
 struct mailbox {
