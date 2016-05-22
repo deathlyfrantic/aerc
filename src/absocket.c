@@ -216,6 +216,7 @@ ssize_t ab_recv(absocket_t *socket, void *buffer, size_t len) {
 		return SSL_read(socket->ssl, buffer, len);
 #else
 		assert(false);
+		return -1;
 #endif
 	} else {
 		return recv(socket->basefd, buffer, len, 0);
@@ -233,6 +234,7 @@ ssize_t ab_send(absocket_t *socket, void *buffer, size_t len) {
 		return SSL_write(socket->ssl, buffer, len);
 #else
 		assert(false);
+		return -1;
 #endif
 	} else {
 		return send(socket->basefd, buffer, len, 0);

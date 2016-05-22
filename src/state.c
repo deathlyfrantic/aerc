@@ -2,6 +2,7 @@
 #include <string.h>
 #include <strings.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <time.h>
 #include "email/headers.h"
 #include "util/stringop.h"
