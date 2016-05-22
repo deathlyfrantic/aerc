@@ -1,16 +1,15 @@
-#include <termbox.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdarg.h>
 #include <stdbool.h>
-#include <string.h>
-#include "util/stringop.h"
-#include "util/list.h"
-#include "config.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <termbox.h>
+
 #include "colors.h"
+#include "config.h"
 #include "render.h"
 #include "state.h"
-#include "ui.h"
+#include "util/list.h"
+#include "util/stringop.h"
 
 int frame = 0;
 

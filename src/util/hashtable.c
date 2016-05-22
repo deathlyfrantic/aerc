@@ -1,8 +1,10 @@
 /*
  * util/hashtable.c - implements a generic hashtable
  */
-#include "util/hashtable.h"
+#include <stdbool.h>
 #include <stdlib.h>
+
+#include "util/hashtable.h"
 
 hashtable_t *create_hashtable(int buckets, unsigned int (*hash_function)(const void *)) {
 	/*

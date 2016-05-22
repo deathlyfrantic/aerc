@@ -1,9 +1,10 @@
+#include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
-#include "util/list.h"
+
 #include "email/headers.h"
 #include "log.h"
+#include "util/list.h"
 
 int parse_headers(const char *headers, list_t *output) {
 	while (strstr(headers, "\r\n") == headers) {

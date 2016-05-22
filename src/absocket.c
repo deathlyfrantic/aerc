@@ -4,24 +4,26 @@
  * Abstracts reads/writes on a socket to optionally support TLS/SSL
  */
 #define _POSIX_C_SOURCE 201112LL
+
 #include <errno.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netdb.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
 #include <stdbool.h>
-#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
 #ifdef USE_OPENSSL
-#include <openssl/ssl.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
 #include <openssl/err.h>
+#include <openssl/ssl.h>
+#else
+#include <assert.h>
 #endif
+
 #include "log.h"
 #include "absocket.h"
+#include "urlparse.h"
 
 void abs_init() {
 #ifdef USE_OPENSSL

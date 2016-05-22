@@ -2,11 +2,13 @@
  * imap/list.c - issues and handles IMAP LIST commands
  */
 #define _POSIX_C_SOURCE 200809L
+
 #include <stdlib.h>
 #include <string.h>
+
+#include "imap/imap.h"
 #include "internal/imap.h"
 #include "util/list.h"
-#include "util/stringop.h"
 
 void imap_list(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *refname, const char *boxname) {

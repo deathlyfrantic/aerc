@@ -1,10 +1,11 @@
 /*
  * util/list.c - implements a generic expandable list
  */
-#include "util/list.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "util/list.h"
 
 list_t *create_list(void) {
 	list_t *list = malloc(sizeof(list_t));

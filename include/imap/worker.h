@@ -1,8 +1,10 @@
 #ifndef _IMAP_WORKER_H
 #define _IMAP_WORKER_H
 
-#include "imap/imap.h"
-#include "worker.h"
+struct mailbox;
+struct mailbox_message;
+struct worker_message;
+struct worker_pipe;
 
 void *imap_worker(void *_pipe);
 struct aerc_mailbox *serialize_mailbox(struct mailbox *source);

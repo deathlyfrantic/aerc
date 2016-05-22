@@ -2,14 +2,20 @@
  * imap/worker/connect.c - Handles IMAP worker connect actions
  */
 #define _POSIX_C_SOURCE 200809L
+
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "imap/imap.h"
+#include "log.h"
 #include "urlparse.h"
 #include "worker.h"
-#include "imap/imap.h"
-#include "imap/worker.h"
-#include "log.h"
+
+#ifdef USE_OPENSSL
+#include "absocket.h"
+#endif
 
 void handle_imap_ready(struct imap_connection *imap, void *data,
 		enum imap_status status, const char *args);

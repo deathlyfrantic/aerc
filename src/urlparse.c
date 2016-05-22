@@ -2,12 +2,13 @@
  * urlparse.c - parser for RFC 3986 URI strings
  */
 #define _POSIX_C_SOURCE 200809L
+
 #include <ctype.h>
-#include <stdio.h>
 #include <stdbool.h>
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
-#include <stddef.h>
+#include <string.h>
+
 #include "urlparse.h"
 
 bool percent_decode(char *s) {

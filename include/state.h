@@ -3,8 +3,11 @@
 
 #include <pthread.h>
 #include <time.h>
+
 #include "util/list.h"
-#include "worker.h"
+
+struct aerc_mailbox;
+struct aerc_message;
 
 enum account_status {
     ACCOUNT_NOT_READY,

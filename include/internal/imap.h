@@ -4,7 +4,6 @@
 #include <stdio.h>
 
 #include "imap/imap.h"
-#include "util/list.h"
 
 struct imap_pending_callback {
     imap_callback_t callback;

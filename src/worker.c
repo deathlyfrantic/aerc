@@ -1,11 +1,13 @@
 /*
  * worker.c - support code for mail workers
  */
-#include <stdlib.h>
-#include <stdio.h>
 #include <pthread.h>
-#include "worker.h"
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "util/aqueue.h"
+#include "worker.h"
 
 struct worker_pipe *worker_pipe_new() {
 	/*

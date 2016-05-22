@@ -2,6 +2,7 @@
 #define _CONFIG_H
 
 #include <stdbool.h>
+
 #include "util/list.h"
 
 struct account_config_extra {

@@ -2,15 +2,15 @@
  * log.c - worker debug log handler
  */
 #define _POSIX_C_SOURCE 200809L
-#include "log.h"
-#include "worker.h"
+
+#include <libgen.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <errno.h>
 #include <string.h>
-#include <libgen.h>
+#include <unistd.h>
+
+#include "log.h"
 
 int colored = 1;
 enum log_level loglevel_default = L_ERROR;

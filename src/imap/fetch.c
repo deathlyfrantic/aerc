@@ -3,16 +3,20 @@
  * responses from SELECT commands
  */
 #define _POSIX_C_SOURCE 200809L
+
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <time.h>
-#include "internal/imap.h"
-#include "imap/date.h"
+
 #include "email/headers.h"
+#include "imap/date.h"
+#include "imap/imap.h"
+#include "internal/imap.h"
+#include "log.h"
 #include "util/list.h"
 #include "util/stringop.h"
-#include "log.h"
 
 void imap_fetch(struct imap_connection *imap, imap_callback_t callback,
 		void *data, int min, int max, const char *what) {

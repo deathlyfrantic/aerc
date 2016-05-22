@@ -1,5 +1,6 @@
 #ifndef _URLPARSE_H
 #define _URLPARSE_H
+
 #include <stdbool.h>
 
 struct uri {

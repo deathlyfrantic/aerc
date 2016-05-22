@@ -2,11 +2,12 @@
  * imap/util.c - misc imap utility functions
  */
 #define _POSIX_C_SOURCE 200809L
+
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <stdbool.h>
-#include "internal/imap.h"
+
+#include "imap/imap.h"
 #include "util/list.h"
 
 static int get_mbox_compare(const void *_mbox, const void *_name) {

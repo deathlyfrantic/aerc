@@ -2,24 +2,24 @@
  * main.c - entry point and temporary test code
  */
 #define _POSIX_C_SOURCE 200809L
+
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <pthread.h>
-#include <signal.h>
 #include <string.h>
 #include <time.h>
-#include <errno.h>
-#include "colors.h"
-#include "handlers.h"
+#include <unistd.h>
+
 #include "absocket.h"
-#include "worker.h"
-#include "internal/imap.h"
+#include "colors.h"
+#include "config.h"
+#include "handlers.h"
 #include "imap/worker.h"
 #include "log.h"
-#include "config.h"
 #include "state.h"
 #include "ui.h"
+#include "util/list.h"
+#include "worker.h"
 
 struct aerc_state *state;
 

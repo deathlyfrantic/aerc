@@ -2,15 +2,12 @@
  * imap/capability.c - issues and handles IMAP CAPABILITY commands
  */
 #define _POSIX_C_SOURCE 201112LL
-#include <stdio.h>
+
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <stdbool.h>
-#include "internal/imap.h"
-#include "util/stringop.h"
-#include "util/list.h"
-#include "log.h"
+
+#include "imap/imap.h"
 
 void imap_capability(struct imap_connection *imap, imap_callback_t callback,
 		void *data) {
