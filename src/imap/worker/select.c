@@ -2,15 +2,11 @@
  * imap/worker/select.c - Handles IMAP worker mailbox select actions
  */
 #define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "worker.h"
-#include "worker.h"
-#include "util/list.h"
+
 #include "imap/imap.h"
-#include "imap/worker.h"
-#include "log.h"
+#include "worker.h"
 
 void handle_worker_select_mailbox(struct worker_pipe *pipe, struct worker_message *message) {
 	/*

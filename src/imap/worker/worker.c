@@ -2,16 +2,19 @@
  * imap/worker/worker.c - IMAP worker main thread and action dispatcher
  */
 #define _POSIX_C_SOURCE 200809L
+
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "worker.h"
-#include "urlparse.h"
-#include "internal/imap.h"
+#include "email/headers.h"
 #include "imap/imap.h"
 #include "imap/worker.h"
+#include "internal/imap.h"
 #include "log.h"
+#include "util/list.h"
 
 struct action_handler {
 	enum worker_message_type action;

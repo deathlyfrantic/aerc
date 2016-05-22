@@ -1,13 +1,14 @@
 #ifndef _ABSOCKET_H
 #define _ABSOCKET_H
 
-#ifdef USE_OPENSSL
-#include <openssl/ssl.h>
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#endif
-#include <unistd.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <unistd.h>
+
+#ifdef USE_OPENSSL
+#include <openssl/ossl_typ.h>
+#endif
+
 #include "urlparse.h"
 
 /*

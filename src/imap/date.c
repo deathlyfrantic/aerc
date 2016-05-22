@@ -1,6 +1,6 @@
 #define _XOPEN_SOURCE
+
 #include <time.h>
-#include "imap/date.h"
 
 char *parse_imap_date(const char *str, struct tm *time) {
 	/*

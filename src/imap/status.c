@@ -2,15 +2,15 @@
  * imap/status.c - handles IMAP status commands and IMAP status responses
  */
 #define _POSIX_C_SOURCE 201112LL
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
+
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "imap/imap.h"
 #include "internal/imap.h"
-#include "util/stringop.h"
-#include "util/hashtable.h"
 #include "log.h"
+#include "util/hashtable.h"
 
 void handle_imap_OK(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args) {

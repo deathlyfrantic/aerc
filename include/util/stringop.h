@@ -1,5 +1,6 @@
 #ifndef _SWAY_STRINGOP_H
 #define _SWAY_STRINGOP_H
+
 #include "list.h"
 
 #if !HAVE_DECL_SETENV

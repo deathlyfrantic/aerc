@@ -1,14 +1,16 @@
 #define _POSIX_C_SOURCE 200809L
-#include <string.h>
-#include <strings.h>
-#include <stdbool.h>
+
 #include <stdlib.h>
+#include <string.h>
+#include <sys/time.h>
 #include <time.h>
+
 #include "email/headers.h"
-#include "util/stringop.h"
-#include "util/list.h"
 #include "state.h"
 #include "ui.h"
+#include "util/stringop.h"
+#include "util/list.h"
+#include "worker.h"
 
 void set_status(struct account_state *account, enum account_status state,
         const char *text) {

@@ -2,18 +2,16 @@
  * handlers.c - handlers for worker messages
  */
 #define _POSIX_C_SOURCE 200809L
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef USE_OPENSSL
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#endif
-#include "worker.h"
+
 #include "log.h"
-#include "config.h"
 #include "state.h"
 #include "ui.h"
+#include "util/list.h"
+#include "worker.h"
 
 void handle_worker_connect_done(struct account_state *account,
 		struct worker_message *message) {

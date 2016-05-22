@@ -1,11 +1,13 @@
-#include <termbox.h>
 #include <string.h>
-#include "util/list.h"
-#include "state.h"
-#include "ui.h"
-#include "render.h"
+#include <termbox.h>
+#include <time.h>
+
 #include "colors.h"
 #include "config.h"
+#include "state.h"
+#include "ui.h"
+#include "util/list.h"
+#include "worker.h"
 
 static void clear_remaining(struct tb_cell *cell, int x, int y, int width, int height) {
 	cell->ch = ' ';

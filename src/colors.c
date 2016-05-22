@@ -1,11 +1,12 @@
-#include <termbox.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
 #include <strings.h>
+#include <termbox.h>
+
+#include "colors.h"
 #include "util/stringop.h"
 #include "util/hashtable.h"
-#include "colors.h"
 
 hashtable_t *colors;
 

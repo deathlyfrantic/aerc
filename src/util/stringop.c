@@ -2,13 +2,12 @@
  * util/stringop.c - string manipulation utilities
  */
 #define _POSIX_C_SOURCE 201112LL
+
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <strings.h>
-#include <ctype.h>
-#include <stdbool.h>
-#include "util/stringop.h"
+
 #include "util/list.h"
 
 const char whitespace[] = " \f\n\r\t\v";

@@ -2,11 +2,15 @@
  * imap/parse.c - parser for IMAP argument strings
  */
 #define _POSIX_C_SOURCE 200809L
-#include "internal/imap.h"
+
+#include <assert.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <assert.h>
+
+#include "imap/imap.h"
 
 static long parse_number(const char **str) {
 	/*

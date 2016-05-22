@@ -1,11 +1,14 @@
 #ifndef _WORKER_H
 #define _WORKER_H
+
+#include <stdbool.h>
+
+#ifdef USE_OPENSSL
+#include <openssl/ossl_typ.h>
+#endif
+
 #include "util/aqueue.h"
 #include "util/list.h"
-#ifdef USE_OPENSSL
-#include <openssl/x509.h>
-#include <openssl/x509v3.h>
-#endif
 
 /* worker.h
  *

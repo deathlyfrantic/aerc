@@ -3,14 +3,13 @@
 
 // Implements RFC 3501 (Internet Mail Access Protocol)
 
-#include <stdbool.h>
 #include <poll.h>
-#include <stdarg.h>
-#include "email/headers.h"
-#include "util/list.h"
-#include "util/hashtable.h"
-#include "urlparse.h"
+#include <stdbool.h>
+
 #include "absocket.h"
+#include "urlparse.h"
+#include "util/hashtable.h"
+#include "util/list.h"
 
 // TODO: Refactor these into the internal header:
 // - recv_mode

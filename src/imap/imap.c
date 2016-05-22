@@ -2,21 +2,25 @@
  * imap/imap.c - responsible for opening and maintaining the IMAP socket
  */
 #define _POSIX_C_SOURCE 201112LL
-#include <errno.h>
+
+#include <assert.h>
+#include <poll.h>
+#include <stdarg.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <stdbool.h>
-#include <poll.h>
-#include <assert.h>
-#include <stdarg.h>
-#include "util/hashtable.h"
-#include "util/stringop.h"
+#include <unistd.h>
+
+#include "absocket.h"
+#include "imap/imap.h"
 #include "internal/imap.h"
-#include "urlparse.h"
-#include "worker.h"
 #include "log.h"
+#include "urlparse.h"
+#include "util/hashtable.h"
+#include "util/list.h"
+#include "util/stringop.h"
+
 #define BUFFER_SIZE 1024
 
 bool inited = false;
