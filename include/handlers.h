@@ -16,5 +16,7 @@ void handle_worker_connect_cert_check(struct account_state *account,
 		struct worker_message *message);
 void handle_worker_mailbox_updated(struct account_state *account,
 		struct worker_message *message);
+void handle_worker_message_updated(struct account_state *account,
+		struct worker_message *message);
 
 #endif

@@ -67,6 +67,7 @@ struct message_range {
 };
 
 struct aerc_message {
+    int index;
     long uid;
     list_t *flags, *headers;
     struct tm *internal_date;

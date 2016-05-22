@@ -87,3 +87,14 @@ void handle_worker_mailbox_updated(struct account_state *account,
 
 	free_aerc_mailbox(old);
 }
+
+void handle_worker_message_updated(struct account_state *account,
+		struct worker_message *message) {
+	worker_log(L_DEBUG, "Updated message on main thread");
+	struct aerc_message *new = message->data;
+	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
+	int i = new->index;
+	free_aerc_message(mbox->messages->items[i]);
+	mbox->messages->items[i] = new;
+	rerender();
+}

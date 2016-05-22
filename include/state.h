@@ -47,5 +47,7 @@ void set_status(struct account_state *account, enum account_status state,
 struct aerc_mailbox *get_aerc_mailbox(struct account_state *account,
         const char *name);
 void free_aerc_mailbox(struct aerc_mailbox *mbox);
+void free_aerc_message(struct aerc_message *msg);
+const char *get_message_header(struct aerc_message *msg, char *key);
 
 #endif

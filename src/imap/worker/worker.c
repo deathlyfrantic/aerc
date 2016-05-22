@@ -45,6 +45,7 @@ void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
 struct aerc_message *serialize_message(struct mailbox_message *source) {
 	if (!source || !source->populated) return NULL;
 	struct aerc_message *dest = calloc(1, sizeof(struct aerc_message));
+	dest->index = source->index;
 	dest->uid = source->uid;
 	dest->flags = create_list();
 	for (int i = 0; i < source->flags->length; ++i) {

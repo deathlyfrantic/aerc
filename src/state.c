@@ -3,6 +3,7 @@
 #include <strings.h>
 #include <stdbool.h>
 #include <time.h>
+#include "email/headers.h"
 #include "util/stringop.h"
 #include "util/list.h"
 #include "state.h"
@@ -44,4 +45,26 @@ void free_aerc_mailbox(struct aerc_mailbox *mbox) {
 	free_flat_list(mbox->flags);
 	// TODO: Free messages
 	free(mbox);
+}
+
+void free_aerc_message(struct aerc_message *msg) {
+	if (!msg) return;
+	free_flat_list(msg->flags);
+	for (int i = 0; i < msg->headers->length; ++i) {
+		struct email_header *header = msg->headers->items[i];
+		free(header->key);
+		free(header->value);
+	}
+	free_flat_list(msg->headers);
+	free(msg);
+}
+
+const char *get_message_header(struct aerc_message *msg, char *key) {
+	for (int i = 0; i < msg->headers->length; ++i) {
+		struct email_header *header = msg->headers->items[i];
+		if (strcmp(header->key, key) == 0) {
+			return header->value;
+		}
+	}
+	return NULL;
 }

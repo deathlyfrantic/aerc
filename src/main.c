@@ -35,6 +35,7 @@ struct message_handler message_handlers[] = {
 	{ WORKER_LIST_ERROR, handle_worker_list_error },
 	{ WORKER_CONNECT_CERT_CHECK, handle_worker_connect_cert_check },
 	{ WORKER_MAILBOX_UPDATED, handle_worker_mailbox_updated },
+	{ WORKER_MESSAGE_UPDATED, handle_worker_message_updated },
 };
 
 void handle_worker_message(struct account_state *account, struct worker_message *msg) {

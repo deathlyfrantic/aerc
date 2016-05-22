@@ -47,6 +47,7 @@ struct mailbox_flag {
 
 struct mailbox_message {
     bool fetching, populated;
+    int index;
     long uid;
     list_t *flags, *headers;
     struct tm *internal_date;
