@@ -183,7 +183,7 @@ static bool load_config(const char *path, struct aerc_config *config) {
 
 static int account_compare(const void *_account, const void *_name) {
 	const struct account_config *account = _account;
-	const char *name = name;
+	const char *name = _name;
 	return strcmp(account->name, name);
 }
 
