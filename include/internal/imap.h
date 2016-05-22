@@ -1,6 +1,8 @@
 #ifndef _INTERNAL_IMAP_H
 #define _INTERNAL_IMAP_H
 
+#include <stdio.h>
+
 #include "imap/imap.h"
 #include "util/list.h"
 
