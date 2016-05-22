@@ -9,7 +9,7 @@
 #include <openssl/ossl_typ.h>
 #endif
 
-struct uri;
+#include "urlparse.h"
 
 /*
  * Abstract socket utility, handles adding SSL if necessary.

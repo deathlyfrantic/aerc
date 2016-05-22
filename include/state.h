@@ -5,9 +5,7 @@
 #include <time.h>
 
 #include "util/list.h"
-
-struct aerc_mailbox;
-struct aerc_message;
+#include "worker.h"
 
 enum account_status {
     ACCOUNT_NOT_READY,

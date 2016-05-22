@@ -16,11 +16,10 @@
 #include "imap/imap.h"
 #include "internal/imap.h"
 #include "log.h"
+#include "urlparse.h"
 #include "util/hashtable.h"
 #include "util/list.h"
 #include "util/stringop.h"
-
-struct uri;
 
 #define BUFFER_SIZE 1024
 

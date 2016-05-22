@@ -7,10 +7,9 @@
 #include <stdbool.h>
 
 #include "absocket.h"
+#include "urlparse.h"
 #include "util/hashtable.h"
 #include "util/list.h"
-
-struct uri;
 
 // TODO: Refactor these into the internal header:
 // - recv_mode

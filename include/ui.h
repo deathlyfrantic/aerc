@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 
-struct tb_cell;
+#include "termbox.h"
 
 void init_ui();
 void teardown_ui();

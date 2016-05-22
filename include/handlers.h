@@ -1,8 +1,8 @@
 #ifndef _HANDLERS_H
 #define _HANDLERS_H
 
-struct account_state;
-struct worker_message;
+#include "state.h"
+#include "worker.h"
 
 void handle_worker_connect_done(struct account_state *account,
 		struct worker_message *message);

@@ -14,12 +14,12 @@
 #include "colors.h"
 #include "config.h"
 #include "handlers.h"
+#include "worker.h" // must be included before imap/worker.h
 #include "imap/worker.h"
 #include "log.h"
 #include "state.h"
 #include "ui.h"
 #include "util/list.h"
-#include "worker.h"
 
 struct aerc_state *state;
 

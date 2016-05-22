@@ -7,9 +7,9 @@
 #include <stdlib.h>
 
 #include "imap/imap.h"
+#include "worker.h" // must be included before imap/worker.h
 #include "imap/worker.h"
 #include "util/list.h"
-#include "worker.h"
 
 struct list_data {
 	struct worker_pipe *pipe;
