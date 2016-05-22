@@ -51,6 +51,8 @@ void handle_imap_status(struct imap_connection *imap, const char *token,
 		estatus = STATUS_PREAUTH;
 	} else if (strcmp(cmd, "BYE") == 0) {
 		estatus = STATUS_BYE;
+	} else {
+		return;
 	}
 	/*
 	 * STATUS commands are usually sent by the server in response to a command
