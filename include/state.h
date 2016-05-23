@@ -39,6 +39,7 @@ struct account_state {
 struct aerc_state {
     int selected_account;
     list_t *accounts;
+    bool exit;
     struct {
         char *text;
         int length, index, scroll;

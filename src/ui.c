@@ -8,6 +8,7 @@
 
 #include "util/stringop.h"
 #include "util/list.h"
+#include "commands.h"
 #include "config.h"
 #include "colors.h"
 #include "state.h"
@@ -177,6 +178,12 @@ bool ui_tick() {
 			case TB_KEY_SPACE:
 				command_input(' ');
 				break;
+			case TB_KEY_TAB:
+				command_input('\t');
+				break;
+			case TB_KEY_ENTER:
+				handle_command(state->command.text);
+				break;
 			default:
 				if (event.ch && !event.mod) {
 					command_input(event.ch);
@@ -216,5 +223,5 @@ bool ui_tick() {
 	case -1:
 		return false;
 	}
-	return true;
+	return !state->exit;
 }
