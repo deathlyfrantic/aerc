@@ -39,6 +39,10 @@ struct account_state {
 struct aerc_state {
     int selected_account;
     list_t *accounts;
+    struct {
+        char *text;
+        int length, index, scroll;
+    } command;
 };
 
 extern struct aerc_state *state;

@@ -3,13 +3,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <termbox.h>
+#include <string.h>
+#include <ctype.h>
 
-#include "colors.h"
+#include "util/stringop.h"
+#include "util/list.h"
 #include "config.h"
-#include "render.h"
+#include "colors.h"
 #include "state.h"
+#include "render.h"
 #include "util/list.h"
 #include "util/stringop.h"
+#include "ui.h"
 
 int frame = 0;
 
@@ -77,6 +82,11 @@ void rerender() {
 	render_status(folder_width, height - 1, width - folder_width);
 	render_items(folder_width, 1, width - folder_width, height - 2);
 
+	if (state->command.text) {
+		tb_set_cursor(folder_width + strlen(state->command.text) + 1, height - 1);
+	} else {
+		tb_set_cursor(TB_HIDE_CURSOR, TB_HIDE_CURSOR);
+	}
 	tb_present();
 }
 
@@ -95,6 +105,47 @@ static void render_loading(int x, int y) {
 			(const char *)config->ui.loading_frames->items[f]);
 }
 
+static void command_input(uint16_t ch) {
+	int size = tb_utf8_char_length(ch);
+	int len = strlen(state->command.text);
+	if (state->command.length < len + size + 1) {
+		state->command.text = realloc(state->command.text,
+				state->command.length + 1024);
+		state->command.length += 1024;
+	}
+	memcpy(state->command.text + len, &ch, size);
+	state->command.text[len + size] = '\0';
+	rerender();
+}
+
+static void abort_command() {
+	free(state->command.text);
+	state->command.text = NULL;
+	rerender();
+}
+
+static void command_backspace() {
+	int len = strlen(state->command.text);
+	if (len == 0) {
+		return;
+	}
+	state->command.text[len - 1] = '\0';
+	rerender();
+}
+
+static void command_delete_word() {
+	int len = strlen(state->command.text);
+	if (len == 0) {
+		return;
+	}
+	char *cmd = state->command.text + len - 1;
+	if (isspace(*cmd)) --cmd;
+	while (cmd != state->command.text && !isspace(*cmd)) --cmd;
+	if (cmd != state->command.text) ++cmd;
+	*cmd = '\0';
+	rerender();
+}
+
 bool ui_tick() {
 	if (loading_indicators->length > 0) {
 		frame++;
@@ -111,22 +162,53 @@ bool ui_tick() {
 		rerender();
 		break;
 	case TB_EVENT_KEY:
-		if (event.key == TB_KEY_ESC
-				|| event.ch == 'q'
-				|| event.key == TB_KEY_CTRL_C) {
-			return false;
+		if (state->command.text) {
+			switch (event.key) {
+			case TB_KEY_ESC:
+				abort_command();
+				break;
+			case TB_KEY_BACKSPACE:
+			case TB_KEY_BACKSPACE2:
+				command_backspace();
+				break;
+			case TB_KEY_CTRL_W:
+				command_delete_word();
+				break;
+			case TB_KEY_SPACE:
+				command_input(' ');
+				break;
+			default:
+				if (event.ch && !event.mod) {
+					command_input(event.ch);
+				}
+				break;
+			}
+		} else {
+			if (event.ch == ':' && !event.mod) {
+				state->command.text = malloc(1024);
+				state->command.text[0] = '\0';
+				state->command.length = 1024;
+				state->command.index = 0;
+				state->command.scroll = 0;
+				rerender();
+			}
+			// Temporary:
+			if (event.ch == 'q' || event.key == TB_KEY_CTRL_C) {
+				return false;
+			}
+			if (event.key == TB_KEY_ARROW_RIGHT) {
+				state->selected_account++;
+				state->selected_account %= state->accounts->length;
+				rerender();
+			}
+			if (event.key == TB_KEY_ARROW_LEFT) {
+				state->selected_account--;
+				state->selected_account %= state->accounts->length;
+				rerender();
+			}
+			// /temporary
 		}
 		if (event.key == TB_KEY_CTRL_L) {
-			rerender();
-		}
-		if (event.key == TB_KEY_ARROW_RIGHT) {
-			state->selected_account++;
-			state->selected_account %= state->accounts->length;
-			rerender();
-		}
-		if (event.key == TB_KEY_ARROW_LEFT) {
-			state->selected_account--;
-			state->selected_account %= state->accounts->length;
 			rerender();
 		}
 		// TODO: Handle other keys

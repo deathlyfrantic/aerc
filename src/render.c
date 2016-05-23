@@ -105,7 +105,22 @@ void render_folder_list(int x, int y, int width, int height) {
 	clear_remaining(&cell, x, y, width - 1, height);
 }
 
+static void render_command(int x, int y, int width) {
+	struct tb_cell cell;
+	get_color("ex-line", &cell);
+	cell.ch = ' ';
+	for (int _x = 0; _x < width; ++_x) {
+		tb_put_cell(x + _x, y, &cell);
+	}
+	tb_printf(x, y, &cell, ":%s", state->command.text);
+}
+
 void render_status(int x, int y, int width) {
+	if (state->command.text != NULL) {
+		render_command(x, y, width);
+		return;
+	}
+
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
 	if (!account->status.text) return;

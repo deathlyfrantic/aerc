@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 
+	init_ui();
+
 	for (int i = 0; i < config->accounts->length; ++i) {
 		struct account_config *ac = config->accounts->items[i];
 		if (!ac->source) {
@@ -101,7 +103,6 @@ int main(int argc, char **argv) {
 		set_status(account, ACCOUNT_NOT_READY, "Connecting...");
 	}
 
-	init_ui();
 	rerender();
 
 	while (1) {

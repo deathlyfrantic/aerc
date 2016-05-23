@@ -26,6 +26,8 @@ void colors_init() {
 	set_color("status-line", "white:black");
 	set_color("status-line-error", "red:black");
 
+	set_color("ex-line", "default:default");
+
 	set_color("message-list-unselcted", "default:default");
 	set_color("message-list-selected", "white:black");
 }
