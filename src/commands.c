@@ -8,10 +8,30 @@
 #include "commands.h"
 #include "state.h"
 #include "log.h"
+#include "ui.h"
 
 static void handle_quit(int argc, char **argv) {
 	// TODO: We may occasionally want to confirm the user's choice here
 	state->exit = true;
+}
+
+static void handle_next_message(int argc, char **argv) {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
+	if (account->ui.selected_message + 1 < mbox->messages->length) {
+		++account->ui.selected_message;
+		rerender();
+	}
+}
+
+static void handle_previous_message(int argc, char **argv) {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	if (account->ui.selected_message != 0) {
+		--account->ui.selected_message;
+		rerender();
+	}
 }
 
 struct cmd_handler {
@@ -22,6 +42,8 @@ struct cmd_handler {
 // Keep alphabetized, please
 struct cmd_handler cmd_handlers[] = {
 	{ "exit", handle_quit },
+	{ "next-message", handle_next_message },
+	{ "previous-message", handle_previous_message },
 	{ "q", handle_quit },
 	{ "quit", handle_quit }
 };

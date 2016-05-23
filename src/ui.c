@@ -183,6 +183,7 @@ bool ui_tick() {
 				break;
 			case TB_KEY_ENTER:
 				handle_command(state->command.text);
+				abort_command();
 				break;
 			default:
 				if (event.ch && !event.mod) {
