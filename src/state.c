@@ -53,10 +53,12 @@ void free_aerc_mailbox(struct aerc_mailbox *mbox) {
 void free_aerc_message(struct aerc_message *msg) {
 	if (!msg) return;
 	free_flat_list(msg->flags);
-	for (int i = 0; i < msg->headers->length; ++i) {
-		struct email_header *header = msg->headers->items[i];
-		free(header->key);
-		free(header->value);
+	if (msg->headers) {
+		for (int i = 0; i < msg->headers->length; ++i) {
+			struct email_header *header = msg->headers->items[i];
+			free(header->key);
+			free(header->value);
+		}
 	}
 	free_flat_list(msg->headers);
 	free(msg);
@@ -70,4 +72,15 @@ const char *get_message_header(struct aerc_message *msg, char *key) {
 		}
 	}
 	return NULL;
+}
+
+bool get_message_flag(struct aerc_message *msg, char *flag) {
+	if (!msg->flags) return false;
+	for (int i = 0; i < msg->flags->length; ++i) {
+		const char *_flag = msg->flags->items[i];
+		if (strcmp(flag, _flag) == 0) {
+			return true;
+		}
+	}
+	return false;
 }

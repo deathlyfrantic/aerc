@@ -157,18 +157,27 @@ void render_items(int x, int y, int width, int height) {
 		return;
 	}
 
-	for (int i = account->ui.list_offset;
-			i < mailbox->messages->length && y < height;
-			++i, ++y) {
+	int selected = mailbox->messages->length - account->ui.selected_message - 1;
+	for (int i = mailbox->messages->length - account->ui.list_offset - 1;
+			i >= 0 && y < height;
+			--i, ++y) {
 		struct aerc_message *message = mailbox->messages->items[i];
-		if (account->ui.selected_message == i) {
-			get_color("message-list-selected", &cell);
-		} else {
-			get_color("message-list-unselected", &cell);
-		}
-		if (!message) {
+		get_color("message-list-unselected", &cell);
+		if (!message || !message->fetched) {
 			add_loading(x, y);
 		} else {
+			bool seen = get_message_flag(message, "\\Seen");
+			if (selected == i) {
+				get_color("message-list-selected", &cell);
+				if (!seen) {
+					get_color("message-list-selected-unread", &cell);
+				}
+			} else {
+				get_color("message-list-unselected", &cell);
+				if (!seen) {
+					get_color("message-list-unselcted-unread", &cell);
+				}
+			}
 			char date[64];
 			strftime(date, sizeof(date), config->ui.timestamp_format,
 					message->internal_date);

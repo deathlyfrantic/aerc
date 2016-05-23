@@ -28,8 +28,10 @@ void colors_init() {
 
 	set_color("ex-line", "default:default");
 
-	set_color("message-list-unselcted", "default:default");
 	set_color("message-list-selected", "white:black");
+	set_color("message-list-unselcted", "default:default");
+	set_color("message-list-selected-unread", "white:_black");
+	set_color("message-list-unselcted-unread", "default:_default");
 }
 
 const struct {
@@ -48,17 +50,26 @@ const struct {
 };
 
 static uint16_t match_color(const char *value) {
+	uint16_t mods = 0;
+	while (*value == '*' || *value == '_') {
+		if (*value == '*') {
+			mods |= TB_BOLD;
+		}
+		if (*value == '_') {
+			mods |= TB_UNDERLINE;
+		}
+		++value;
+	}
 	for (size_t i = 0;
 			i < sizeof(color_names) / (sizeof(void *) + sizeof(uint16_t));
 			++i) {
 		if (strncasecmp(color_names[i].name,
 					value,
 					strlen(color_names[i].name)) == 0) {
-			return color_names[i].color;
-			break;
+			return color_names[i].color | mods;
 		}
 	}
-	return TB_DEFAULT;
+	return TB_DEFAULT | mods;
 }
 
 void set_color(const char *name, const char *value) {

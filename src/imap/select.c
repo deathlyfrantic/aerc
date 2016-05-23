@@ -49,7 +49,8 @@ void handle_imap_existsunseenrecent(struct imap_connection *imap, const char *to
 					while (diff--) {
 						struct mailbox_message *msg = calloc(1,
 								sizeof(struct mailbox_message));
-						list_insert(mbox->messages, 0, msg);
+						msg->index = mbox->messages->length;
+						list_add(mbox->messages, msg);
 					}
 				} else {
 					worker_log(L_ERROR, "Got EXISTS with negative diff, not supposed to happen");

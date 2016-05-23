@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "log.h"
 #include "state.h"
@@ -96,8 +97,12 @@ void handle_worker_message_updated(struct account_state *account,
 	worker_log(L_DEBUG, "Updated message on main thread");
 	struct aerc_message *new = message->data;
 	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
-	int i = new->index;
-	free_aerc_message(mbox->messages->items[i]);
-	mbox->messages->items[i] = new;
+	for (int i = 0; i < mbox->messages->length; ++i) {
+		struct aerc_message *old = mbox->messages->items[i];
+		if (old->index == new->index) {
+			free_aerc_message(mbox->messages->items[i]);
+			mbox->messages->items[i] = new;
+		}
+	}
 	rerender();
 }
