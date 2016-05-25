@@ -148,7 +148,7 @@ void imap_receive(struct imap_connection *imap) {
 	 * This function will poll(3) for data waiting on the socket, then attempt
 	 * to receive it per the various modes the connection may be in.
 	 */
-	poll(imap->poll, 1, -1);
+	poll(imap->poll, 1, 0);
 	if (imap->poll[0].revents & POLLIN) {
 		if (imap->mode == RECV_WAIT) {
 			/* The mode may be RECV_WAIT if we are waiting on the user to verify

@@ -108,6 +108,9 @@ static char *parse_status_response(const char **str) {
 	 * So here we pull that status response out into a string.
 	 */
 	char *end = strchr(*str, ']');
+	if (!end) {
+		return NULL;
+	}
 	int len = (end - *str) - 1;
 	char *resp = malloc(len + 1);
 	strncpy(resp, *str + 1, len);
@@ -134,6 +137,10 @@ static int _imap_parse_args(const char **str, imap_arg_t *args) {
 		} else if (**str == '[') {
 			args->type = IMAP_RESPONSE;
 			args->str = parse_status_response(str);
+			if (!args->str) {
+				remaining = 1;
+				break;
+			}
 		} else if (**str == '(') {
 			args->type = IMAP_LIST;
 			args->list = calloc(1, sizeof(imap_arg_t));

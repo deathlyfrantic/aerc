@@ -34,6 +34,15 @@ static void handle_previous_message(int argc, char **argv) {
 	}
 }
 
+static void handle_cd(int argc, char **argv) {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	free(account->selected);
+	account->selected = strdup(argv[0]);
+	worker_post_action(account->worker.pipe, WORKER_SELECT_MAILBOX,
+			NULL, strdup(argv[0]));
+}
+
 struct cmd_handler {
 	char *command;
 	void (*handler)(int argc, char **argv);
@@ -41,6 +50,7 @@ struct cmd_handler {
 
 // Keep alphabetized, please
 struct cmd_handler cmd_handlers[] = {
+	{ "cd", handle_cd },
 	{ "exit", handle_quit },
 	{ "next-message", handle_next_message },
 	{ "previous-message", handle_previous_message },
