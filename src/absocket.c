@@ -142,6 +142,7 @@ absocket_t *absocket_new(const struct uri *uri, bool use_ssl) {
 	int s;
 	if ((s = getaddrinfo(uri->hostname, uri->port, &hints, &result))) {
 		worker_log(L_ERROR, "Connection failed: %s", gai_strerror(s));
+		absocket_free(abs);
 		return NULL;
 	}
 	/*
