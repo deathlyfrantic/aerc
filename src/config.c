@@ -130,6 +130,7 @@ static int handle_config_option(void *_config, const char *section,
 	for (size_t i = 0; i < sizeof(strings) / (sizeof(void *) * 3); ++i) {
 		if (strcmp(strings[i].section, section) == 0
 				&& strcmp(strings[i].key, key) == 0) {
+			if(*strings[i].string) free(*strings[i].string);
 			*strings[i].string = strdup(value);
 			return 1;
 		}
