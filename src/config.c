@@ -305,5 +305,7 @@ bool load_main_config(const char *file) {
 		load_accounts_config();
 	}
 
+	free(path);
+
 	return success;
 }
