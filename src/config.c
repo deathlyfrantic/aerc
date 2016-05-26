@@ -271,7 +271,10 @@ bool load_accounts_config() {
 		SYSCONFDIR "/aerc/accounts.conf",
 	};
 
-	return load_accounts(get_config_path(account_paths, 3), config);
+	char* path = get_config_path(account_paths, 3);
+	bool success = load_accounts(path, config);
+	free(path);
+	return success;
 }
 
 bool load_main_config(const char *file) {
