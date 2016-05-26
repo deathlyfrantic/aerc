@@ -130,6 +130,7 @@ static int handle_config_option(void *_config, const char *section,
 	for (size_t i = 0; i < sizeof(strings) / (sizeof(void *) * 3); ++i) {
 		if (strcmp(strings[i].section, section) == 0
 				&& strcmp(strings[i].key, key) == 0) {
+			if(*strings[i].string) free(*strings[i].string);
 			*strings[i].string = strdup(value);
 			return 1;
 		}
@@ -270,7 +271,10 @@ bool load_accounts_config() {
 		SYSCONFDIR "/aerc/accounts.conf",
 	};
 
-	return load_accounts(get_config_path(account_paths, 3), config);
+	char* path = get_config_path(account_paths, 3);
+	bool success = load_accounts(path, config);
+	free(path);
+	return success;
 }
 
 bool load_main_config(const char *file) {
@@ -300,6 +304,8 @@ bool load_main_config(const char *file) {
 	if (success) {
 		load_accounts_config();
 	}
+
+	free(path);
 
 	return success;
 }
