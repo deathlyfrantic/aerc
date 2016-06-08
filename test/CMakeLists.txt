@@ -21,7 +21,9 @@ add_executable(tests
 )
 
 set(WRAPPED
-    "-Wl,--wrap=hashtable_get"
+    "-Wl,--wrap=hashtable_get \
+    -Wl,--wrap=poll \
+    -Wl,--wrap=ab_recv"
 )
 
 set_target_properties(tests
