@@ -7,6 +7,8 @@
 extern void imap_init(struct imap_connection *imap);
 extern int handle_line(struct imap_connection *imap, imap_arg_t *arg);
 
+int handler_called = 0;
+
 static void test_handle_line_unknown_handler(void **state) {
 	int _;
 	struct imap_connection *imap = malloc(sizeof(struct imap_connection));
@@ -20,21 +22,20 @@ static void test_handle_line_unknown_handler(void **state) {
 
 	handle_line(imap, arg);
 
+	assert_int_equal(handler_called, 0);
+
 	free(arg);
 	imap_close(imap);
 }
 
-bool handler_called = false;
-
 static void test_handler(struct imap_connection *imap,
 	const char *token, const char *cmd, imap_arg_t *args) {
-	handler_called = true;
-	assert_string_equal(token, "a001");
-	assert_string_equal(cmd, "FOOBAR");
+	handler_called++;
+	assert_true(strncmp(token, "a00", 3) == 0);
+	assert_true(strncmp(cmd, "FOOBA", 5) == 0);
 }
 
 static void test_handle_line_known_handler(void **state) {
-	handler_called = false;
 	int _;
 	struct imap_connection *imap = malloc(sizeof(struct imap_connection));
 	imap_init(imap);
@@ -47,14 +48,13 @@ static void test_handle_line_known_handler(void **state) {
 
 	handle_line(imap, arg);
 
-	assert_true(handler_called);
+	assert_int_equal(handler_called, 1);
 
 	free(arg);
 	imap_close(imap);
 }
 
 static void test_imap_receive_simple(void **state) {
-	handler_called = false;
 	struct imap_connection *imap = malloc(sizeof(struct imap_connection));
 	imap_init(imap);
 	imap->mode = RECV_LINE;
@@ -71,16 +71,124 @@ static void test_imap_receive_simple(void **state) {
 
 	imap_receive(imap);
 
-	assert_true(handler_called);
+	assert_int_equal(handler_called, 1);
 
 	imap_close(imap);
 }
 
+static void test_imap_receive_multiple_lines(void **state) {
+	struct imap_connection *imap = malloc(sizeof(struct imap_connection));
+	imap_init(imap);
+	imap->mode = RECV_LINE;
+
+	const char *buffer = "a001 FOOBAR\r\na002 FOOBAZ\r\n";
+
+	expect_string(__wrap_hashtable_get, key, "FOOBAR");
+	will_return(__wrap_hashtable_get, test_handler);
+
+	expect_string(__wrap_hashtable_get, key, "FOOBAZ");
+	will_return(__wrap_hashtable_get, test_handler);
+
+	set_ab_recv_result((void *)buffer, strlen(buffer));
+	will_return(__wrap_ab_recv, strlen(buffer));
+
+	will_return(__wrap_poll, 0);
+	imap->poll[0].revents = POLLIN;
+
+	imap_receive(imap);
+
+	assert_int_equal(handler_called, 2);
+
+	imap_close(imap);
+}
+
+static void test_imap_receive_partial_line(void **state) {
+	struct imap_connection *imap = malloc(sizeof(struct imap_connection));
+	imap_init(imap);
+	imap->mode = RECV_LINE;
+
+	const char *buffer = "a001 FOOB";
+
+	set_ab_recv_result((void *)buffer, strlen(buffer));
+	will_return(__wrap_ab_recv, strlen(buffer));
+
+	will_return(__wrap_poll, 0);
+	will_return(__wrap_poll, 0);
+	imap->poll[0].revents = POLLIN;
+
+	imap_receive(imap);
+
+	expect_string(__wrap_hashtable_get, key, "FOOBAR");
+	will_return(__wrap_hashtable_get, test_handler);
+
+	const char *remaining_buffer = "AR\r\n";
+
+	set_ab_recv_result((void *)remaining_buffer, strlen(remaining_buffer));
+	will_return(__wrap_ab_recv, strlen(remaining_buffer));
+
+	imap_receive(imap);
+
+	assert_int_equal(handler_called, 1);
+
+	imap_close(imap);
+}
+
+static void test_imap_receive_multi_partial_line(void **state) {
+	struct imap_connection *imap = malloc(sizeof(struct imap_connection));
+	imap_init(imap);
+	imap->mode = RECV_LINE;
+
+	const char *buffer = "a001 FOOB";
+
+	set_ab_recv_result((void *)buffer, strlen(buffer));
+	will_return(__wrap_ab_recv, strlen(buffer));
+
+	will_return(__wrap_poll, 0);
+	will_return(__wrap_poll, 0);
+	will_return(__wrap_poll, 0);
+	imap->poll[0].revents = POLLIN;
+
+	imap_receive(imap);
+
+	expect_string(__wrap_hashtable_get, key, "FOOBAR");
+	will_return(__wrap_hashtable_get, test_handler);
+	expect_string(__wrap_hashtable_get, key, "FOOBAZ");
+	will_return(__wrap_hashtable_get, test_handler);
+
+	const char *remaining_buffer = "AR\r\na002 FOOB";
+
+	set_ab_recv_result((void *)remaining_buffer, strlen(remaining_buffer));
+	will_return(__wrap_ab_recv, strlen(remaining_buffer));
+
+	imap_receive(imap);
+
+	assert_int_equal(handler_called, 1);
+
+	const char *remaining_buffer_2 = "AZ\r\n";
+
+	set_ab_recv_result((void *)remaining_buffer_2, strlen(remaining_buffer_2));
+	will_return(__wrap_ab_recv, strlen(remaining_buffer_2));
+
+	imap_receive(imap);
+
+	assert_int_equal(handler_called, 2);
+
+	imap_close(imap);
+}
+
+static int setup(void **state) {
+	handler_called = 0;
+	return 0;
+}
+
 int run_tests_imap() {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(test_handle_line_unknown_handler),
-		cmocka_unit_test(test_handle_line_known_handler),
-		cmocka_unit_test(test_imap_receive_simple),
+		cmocka_unit_test_setup(test_handle_line_unknown_handler, setup),
+		cmocka_unit_test_setup(test_handle_line_known_handler, setup),
+		cmocka_unit_test_setup(test_imap_receive_simple, setup),
+		cmocka_unit_test_setup(test_imap_receive_multiple_lines, setup),
+		cmocka_unit_test_setup(test_imap_receive_partial_line, setup),
+		cmocka_unit_test_setup(test_imap_receive_multi_partial_line, setup),
 	};
-	return cmocka_run_group_tests(tests, NULL, NULL);
+	return cmocka_run_group_tests(tests, setup, NULL);
 }

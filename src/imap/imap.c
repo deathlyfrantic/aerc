@@ -200,14 +200,11 @@ void imap_receive(struct imap_connection *imap) {
 				imap_arg_free(arg);
 				/*
 				 * If we got a full command, shift the end of the buffer up to
-				 * the top and loop. Otherwise, append further bytes to the end
-				 * of the buffer and move on.
+				 * the top and loop.
 				 */
 				if (len > 0 && remaining == 0) {
 					memmove(imap->line, imap->line + len, imap->line_size - len);
-					imap->line_index = 0;
-				} else {
-					imap->line_index += len;
+					imap->line_index -= len;
 				}
 			}
 		}
