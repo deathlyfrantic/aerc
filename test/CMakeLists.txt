@@ -6,7 +6,7 @@ FILE(GLOB imap ${PROJECT_SOURCE_DIR}/src/imap/*.c)
 FILE(GLOB imap_worker ${PROJECT_SOURCE_DIR}/src/imap/worker/*.c)
 
 FILE(GLOB tests ${PROJECT_SOURCE_DIR}/test/*.c)
-FILE(GLOB imap_tests ${PROJECT_SOURCE_DIR}/src/imap/*.c)
+FILE(GLOB imap_tests ${PROJECT_SOURCE_DIR}/test/imap/*.c)
 
 include_directories(${CMOCKA_INCLUDE_DIR})
 add_definitions(${CMOCKA_DEFINITIONS})
@@ -18,6 +18,15 @@ add_executable(tests
     ${email}
     ${imap} ${imap_tests}
     ${imap_worker}
+)
+
+set(WRAPPED
+    "-Wl,--wrap=hashtable_get"
+)
+
+set_target_properties(tests
+    PROPERTIES
+    LINK_FLAGS "${WRAPPED}"
 )
 
 target_link_libraries(tests pthread ${CMOCKA_LIBRARIES} ${OPENSSL_LIBRARIES} ${TERMBOX_LIBRARIES})
