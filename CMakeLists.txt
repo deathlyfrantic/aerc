@@ -15,6 +15,7 @@ add_definitions(
 )
 
 option(enable-openssl "Enables OpenSSL support" YES)
+option(enable-tests "Enables test suite" YES)
 
 list(INSERT CMAKE_MODULE_PATH 0
 	${CMAKE_CURRENT_SOURCE_DIR}/CMake
@@ -28,6 +29,7 @@ if(enable-openssl)
 endif()
 
 find_package(Termbox REQUIRED)
+find_package(CMocka)
 
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
@@ -48,6 +50,10 @@ add_executable(aerc
     ${imap}
     ${imap_worker}
 )
+
+if(CMOCKA_FOUND AND enable-tests)
+    add_subdirectory(test)
+endif()
 
 MESSAGE(STATUS "Termbox: ${TERMBOX_LIBRARIES}")
 
