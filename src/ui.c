@@ -95,6 +95,7 @@ void rerender_item(int index) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
 	struct aerc_mailbox *mailbox = get_aerc_mailbox(account, account->selected);
+	if (index >= mailbox->messages->length) return;
 	int folder_width = 20;
 	int width = tb_width(), height = tb_height();
 	int x = folder_width, y = mailbox->messages->length - account->ui.list_offset - index;

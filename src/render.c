@@ -201,7 +201,7 @@ void render_items(int x, int y, int width, int height) {
 
 	int selected = mailbox->messages->length - account->ui.selected_message - 1;
 	for (int i = mailbox->messages->length - account->ui.list_offset - 1;
-			i >= 0 && y < height;
+			i >= 0 && y <= height;
 			--i, ++y) {
 		struct aerc_message *message = mailbox->messages->items[i];
 		render_item(x, y, width, height, message, selected == i);
