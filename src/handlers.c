@@ -8,6 +8,7 @@
 #include <string.h>
 #include <time.h>
 
+#include "config.h"
 #include "log.h"
 #include "state.h"
 #include "ui.h"
@@ -28,21 +29,28 @@ void handle_worker_connect_error(struct account_state *account,
 void handle_worker_list_done(struct account_state *account,
 		struct worker_message *message) {
 	account->mailboxes = message->data;
-	bool have_inbox = false;
-	for (int i = 0; i < account->mailboxes->length; ++i) {
-		struct aerc_mailbox *mbox = account->mailboxes->items[i];
-		if (strcmp(mbox->name, "INBOX") == 0) {
-			have_inbox = true;
+	char *wanted = "INBOX";
+	struct account_config *c = config_for_account(account->name);
+	for (int i = 0; i < c->extras->length; ++i) {
+		struct account_config_extra *extra = c->extras->items[i];
+		if (strcmp(extra->key, "default") == 0) {
+			wanted = extra->value;
+			break;
 		}
 	}
-	// TODO: let user configure default mailbox
-	if (have_inbox) {
-		free(account->selected);
-		account->selected = strdup("INBOX");
-		worker_post_action(account->worker.pipe, WORKER_SELECT_MAILBOX,
-				NULL, strdup("INBOX"));
+	bool have_wanted = false;
+	for (int i = 0; i < account->mailboxes->length; ++i) {
+		struct aerc_mailbox *mbox = account->mailboxes->items[i];
+		if (strcmp(mbox->name, wanted) == 0) {
+			have_wanted = true;
+		}
 	}
-	// TODO: only rerender that list
+	if (have_wanted) {
+		free(account->selected);
+		account->selected = strdup(wanted);
+		worker_post_action(account->worker.pipe, WORKER_SELECT_MAILBOX,
+				NULL, strdup(wanted));
+	}
 	rerender();
 }
 

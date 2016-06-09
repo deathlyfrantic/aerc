@@ -198,6 +198,7 @@ static int handle_account_option(void *_config, const char *section,
 	if (ai == -1) {
 		account = calloc(1, sizeof(struct account_config));
 		account->name = strdup(section);
+		account->extras = create_list();
 		list_add(config->accounts, account);
 	} else {
 		account = config->accounts->items[ai];

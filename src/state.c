@@ -6,6 +6,7 @@
 #include <time.h>
 
 #include "email/headers.h"
+#include "config.h"
 #include "state.h"
 #include "ui.h"
 #include "util/stringop.h"
@@ -83,4 +84,14 @@ bool get_message_flag(struct aerc_message *msg, char *flag) {
 		}
 	}
 	return false;
+}
+
+struct account_config *config_for_account(const char *name) {
+	for (int i = 0; i < config->accounts->length; ++i) {
+		struct account_config *c = config->accounts->items[i];
+		if (strcmp(c->name, name) == 0) {
+			return c;
+		}
+	}
+	return NULL;
 }

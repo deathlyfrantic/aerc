@@ -56,5 +56,6 @@ void free_aerc_mailbox(struct aerc_mailbox *mbox);
 void free_aerc_message(struct aerc_message *msg);
 const char *get_message_header(struct aerc_message *msg, char *key);
 bool get_message_flag(struct aerc_message *msg, char *flag);
+struct account_config *config_for_account(const char *name);
 
 #endif
