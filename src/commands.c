@@ -38,9 +38,11 @@ static void handle_cd(int argc, char **argv) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
 	free(account->selected);
-	account->selected = strdup(argv[0]);
+	char *joined = join_args(argv, argc);
+	account->selected = strdup(joined);
 	worker_post_action(account->worker.pipe, WORKER_SELECT_MAILBOX,
-			NULL, strdup(argv[0]));
+			NULL, strdup(joined));
+	free(joined);
 }
 
 struct cmd_handler {
