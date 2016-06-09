@@ -99,6 +99,7 @@ void rerender_item(int index) {
 	int width = tb_width(), height = tb_height();
 	int x = folder_width, y = mailbox->messages->length - account->ui.list_offset - index;
 	struct aerc_message *message = mailbox->messages->items[index];
+	if (!message) return;
 	int selected = mailbox->messages->length - account->ui.selected_message - 1;
 	// TODO: Consider scrolling
 	for (int i = 0; i < loading_indicators->length; ++i) {

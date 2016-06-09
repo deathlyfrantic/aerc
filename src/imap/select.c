@@ -21,7 +21,7 @@ void imap_select(struct imap_connection *imap, imap_callback_t callback,
 		return;
 	}
 	imap->selected = strdup(mailbox);
-	imap_send(imap, callback, data, "SELECT %s", mailbox);
+	imap_send(imap, callback, data, "SELECT \"%s\"", mailbox);
 }
 
 void handle_imap_existsunseenrecent(struct imap_connection *imap, const char *token,

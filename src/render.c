@@ -149,7 +149,9 @@ void render_item(int x, int y, int width, int height,
 	get_color("message-list-unselected", &cell);
 	if (!message || !message->fetched) {
 		add_loading(x, y);
-		message->should_fetch = true;
+		if (message) {
+			message->should_fetch = true;
+		}
 	} else {
 		bool seen = get_message_flag(message, "\\Seen");
 		if (selected) {
