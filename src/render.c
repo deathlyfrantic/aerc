@@ -143,6 +143,40 @@ void render_status(int x, int y, int width) {
 	}
 }
 
+void render_item(int x, int y, int width, int height,
+		struct aerc_message *message, bool selected) {
+	struct tb_cell cell;
+	get_color("message-list-unselected", &cell);
+	if (!message || !message->fetched) {
+		add_loading(x, y);
+		message->should_fetch = true;
+	} else {
+		bool seen = get_message_flag(message, "\\Seen");
+		if (selected) {
+			get_color("message-list-selected", &cell);
+			if (!seen) {
+				get_color("message-list-selected-unread", &cell);
+			}
+		} else {
+			get_color("message-list-unselected", &cell);
+			if (!seen) {
+				get_color("message-list-unselcted-unread", &cell);
+			}
+		}
+		char date[64];
+		strftime(date, sizeof(date), config->ui.timestamp_format,
+				message->internal_date);
+		const char *subject = get_message_header(message, "Subject");
+		int l = tb_printf(x, y, &cell, "%s %s", date, subject);
+		if (selected) {
+			get_color("message-list-selected", &cell);
+		} else {
+			get_color("message-list-unselected", &cell);
+		}
+		clear_remaining(&cell, x + l, y, width - l, 1);
+	}
+}
+
 void render_items(int x, int y, int width, int height) {
 	struct tb_cell cell;
 	get_color("message-list-unselected", &cell);
@@ -162,28 +196,6 @@ void render_items(int x, int y, int width, int height) {
 			i >= 0 && y < height;
 			--i, ++y) {
 		struct aerc_message *message = mailbox->messages->items[i];
-		get_color("message-list-unselected", &cell);
-		if (!message || !message->fetched) {
-			add_loading(x, y);
-		} else {
-			bool seen = get_message_flag(message, "\\Seen");
-			if (selected == i) {
-				get_color("message-list-selected", &cell);
-				if (!seen) {
-					get_color("message-list-selected-unread", &cell);
-				}
-			} else {
-				get_color("message-list-unselected", &cell);
-				if (!seen) {
-					get_color("message-list-unselcted-unread", &cell);
-				}
-			}
-			char date[64];
-			strftime(date, sizeof(date), config->ui.timestamp_format,
-					message->internal_date);
-			const char *subject = get_message_header(message, "Subject");
-			int l = tb_printf(x, y, &cell, "%s %s", date, subject);
-			clear_remaining(&cell, x + l, y, width - l, 1);
-		}
+		render_item(x, y, width, height, message, selected == i);
 	}
 }

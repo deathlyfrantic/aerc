@@ -5,5 +5,7 @@ void render_account_bar(int x, int y, int width, int folder_width);
 void render_folder_list(int x, int y, int width, int height);
 void render_status(int x, int y, int width);
 void render_items(int x, int y, int width, int height);
+void render_item(int x, int y, int width, int height,
+		struct aerc_message *message, bool selected);
 
 #endif

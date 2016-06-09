@@ -91,19 +91,44 @@ void rerender() {
 	tb_present();
 }
 
+void rerender_item(int index) {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	struct aerc_mailbox *mailbox = get_aerc_mailbox(account, account->selected);
+	int folder_width = 20;
+	int width = tb_width(), height = tb_height();
+	int x = folder_width, y = 1 + index;
+	struct aerc_message *message = mailbox->messages->items[index];
+	int selected = mailbox->messages->length - account->ui.selected_message - 1;
+	// TODO: Consider scrolling
+	for (int i = 0; i < loading_indicators->length; ++i) {
+		struct loading_indicator *indic = loading_indicators->items[i];
+		if (indic->x == x && indic->y == y) {
+			list_del(loading_indicators, i);
+			break;
+		}
+	}
+	render_item(x, y, width - folder_width, height - 2, message, selected == index);
+	tb_present();
+}
+
+static void render_loading(int x, int y) {
+	struct tb_cell cell;
+	if (config->ui.loading_frames->length == 0) {
+		return;
+	}
+	get_color("loading-indicator", &cell);
+	int f = frame / 8 % config->ui.loading_frames->length;
+	tb_printf(x, y, &cell, "%s   ",
+			(const char *)config->ui.loading_frames->items[f]);
+}
+
 void add_loading(int x, int y) {
 	struct loading_indicator *indic = calloc(1, sizeof(struct loading_indicator));
 	indic->x = x;
 	indic->y = y;
 	list_add(loading_indicators, indic);
-}
-
-static void render_loading(int x, int y) {
-	struct tb_cell cell;
-	get_color("loading-indicator", &cell);
-	int f = frame / 8 % config->ui.loading_frames->length;
-	tb_printf(x, y, &cell, "%s   ",
-			(const char *)config->ui.loading_frames->items[f]);
+	render_loading(x, y);
 }
 
 static void command_input(uint16_t ch) {
@@ -148,7 +173,7 @@ static void command_delete_word() {
 }
 
 bool ui_tick() {
-	if (loading_indicators->length > 0) {
+	if (loading_indicators->length > 1) {
 		frame++;
 		for (int i = 0; i < loading_indicators->length; ++i) {
 			struct loading_indicator *indic = loading_indicators->items[i];

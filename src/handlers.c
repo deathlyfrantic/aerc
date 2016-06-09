@@ -60,35 +60,58 @@ void handle_worker_connect_cert_check(struct account_state *account,
 #endif
 }
 
+static void fetch_necessary(struct account_state *account,
+		struct aerc_mailbox *mbox) {
+	int min = -1, max = -1, i;
+	for (i = 0; i < mbox->messages->length; ++i) {
+		struct aerc_message *message = mbox->messages->items[i];
+		if (min == -1) {
+			if (message->should_fetch && !message->fetching) {
+				message->fetching = true;
+				min = i;
+			}
+		} else {
+			if (!message->should_fetch) {
+				max = i - 1;
+				struct message_range *range = malloc(
+						sizeof(struct message_range));
+				range->min = min + 1;
+				range->max = max + 1;
+				worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
+						NULL, range);
+				min = max = -1;
+			}
+		}
+	}
+	if (min != -1) {
+		max = i - 1;
+		struct message_range *range = malloc(sizeof(struct message_range));
+		range->min = min + 1;
+		range->max = max + 1;
+		worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
+				NULL, range);
+	}
+}
+
 void handle_worker_mailbox_updated(struct account_state *account,
 		struct worker_message *message) {
 	struct aerc_mailbox *new = message->data;
 	struct aerc_mailbox *old = NULL;
 
+	bool rerendered = false;
 	for (int i = 0; i < account->mailboxes->length; ++i) {
 		old = account->mailboxes->items[i];
 		if (strcmp(old->name, new->name) == 0) {
 			account->mailboxes->items[i] = new;
 			rerender();
+			rerendered = true;
 			break;
 		}
 	}
 
-	if (!old) {
-		return;
+	if (rerendered) {
+		fetch_necessary(account, new);
 	}
-
-	if (old->exists < new->exists) {
-		if (old->exists == -1) {
-			old->exists = 1;
-		}
-		struct message_range *range = malloc(sizeof(struct message_range));
-		range->min = old->exists;
-		range->max = new->exists;
-		worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
-				NULL, range);
-	}
-
 	free_aerc_mailbox(old);
 }
 
@@ -101,8 +124,10 @@ void handle_worker_message_updated(struct account_state *account,
 		struct aerc_message *old = mbox->messages->items[i];
 		if (old->index == new->index) {
 			free_aerc_message(mbox->messages->items[i]);
+			new->fetched = true;
+			new->should_fetch = false;
 			mbox->messages->items[i] = new;
+			rerender_item(i);
 		}
 	}
-	rerender();
 }

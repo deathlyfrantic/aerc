@@ -70,7 +70,7 @@ struct message_range {
 };
 
 struct aerc_message {
-    bool fetched;
+    bool fetching, fetched, should_fetch;
     int index;
     long uid;
     list_t *flags, *headers;
