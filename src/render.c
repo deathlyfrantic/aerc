@@ -95,6 +95,12 @@ void render_folder_list(int x, int y, int width, int height) {
 				tb_put_cell(x + l, y, &cell);
 				l++;
 			}
+			bool hasChildren = get_mailbox_flag(mailbox, "\\HasChildren");
+			if (hasChildren) {
+				cell.ch = '.';
+				tb_put_cell(x + width - 2, y, &cell);
+				tb_put_cell(x + width - 3, y, &cell);
+			}
 		}
 		x = _x; ++y;
 	} else {

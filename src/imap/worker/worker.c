@@ -79,7 +79,9 @@ struct aerc_mailbox *serialize_mailbox(struct mailbox *source) {
 	dest->unseen = source->unseen;
 	dest->flags = create_list();
 	for (int i = 0; i < source->flags->length; ++i) {
-		list_add(dest->flags, strdup(source->flags->items[i]));
+		struct mailbox_flag *flag = source->flags->items[i];
+		// TODO: Send along the permanent bool as well
+		list_add(dest->flags, strdup(flag->name));
 	}
 	dest->messages = create_list();
 	for (int i = 0; i < source->messages->length; ++i) {

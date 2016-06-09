@@ -75,6 +75,17 @@ const char *get_message_header(struct aerc_message *msg, char *key) {
 	return NULL;
 }
 
+bool get_mailbox_flag(struct aerc_mailbox *mbox, char *flag) {
+	if (!mbox->flags) return false;
+	for (int i = 0; i < mbox->flags->length; ++i) {
+		const char *_flag = mbox->flags->items[i];
+		if (strcmp(flag, _flag) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
 bool get_message_flag(struct aerc_message *msg, char *flag) {
 	if (!msg->flags) return false;
 	for (int i = 0; i < msg->flags->length; ++i) {
