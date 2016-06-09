@@ -26,7 +26,7 @@ int parse_headers(const char *headers, list_t *output) {
 				strcpy(new, prev);
 				strcat(new, " ");
 				strncat(new, headers, eol_i);
-				new[eol_i] = '\0';
+				new[eol_i + strlen(prev)] = '\0';
 				h->value = new;
 				free(prev);
 				headers = eol;

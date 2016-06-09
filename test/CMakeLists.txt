@@ -7,6 +7,7 @@ FILE(GLOB imap_worker ${PROJECT_SOURCE_DIR}/src/imap/worker/*.c)
 
 FILE(GLOB tests ${PROJECT_SOURCE_DIR}/test/*.c)
 FILE(GLOB imap_tests ${PROJECT_SOURCE_DIR}/test/imap/*.c)
+FILE(GLOB email_tests ${PROJECT_SOURCE_DIR}/test/email/*.c)
 
 include_directories(${CMOCKA_INCLUDE_DIR})
 add_definitions(${CMOCKA_DEFINITIONS})
@@ -15,7 +16,7 @@ add_executable(tests
     ${src}
     ${tests}
     ${util}
-    ${email}
+    ${email} ${email_tests}
     ${imap} ${imap_tests}
     ${imap_worker}
 )

@@ -15,6 +15,7 @@ int main(int argc, char **argv) {
 	// TODO: Run only specific tests etc
 	ret += run_tests_urlparse();
 	ret += run_tests_imap();
+	ret += run_tests_headers();
 
 	return ret;
 }
