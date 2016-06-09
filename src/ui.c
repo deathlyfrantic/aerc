@@ -97,7 +97,7 @@ void rerender_item(int index) {
 	struct aerc_mailbox *mailbox = get_aerc_mailbox(account, account->selected);
 	int folder_width = 20;
 	int width = tb_width(), height = tb_height();
-	int x = folder_width, y = 1 + index;
+	int x = folder_width, y = mailbox->messages->length - account->ui.list_offset - index;
 	struct aerc_message *message = mailbox->messages->items[index];
 	int selected = mailbox->messages->length - account->ui.selected_message - 1;
 	// TODO: Consider scrolling
