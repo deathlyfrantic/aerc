@@ -22,6 +22,7 @@ struct imap_capabilities {
     bool auth_plain;
     bool auth_login;
     bool idle;
+    bool sasl_ir;
 };
 
 enum imap_status {

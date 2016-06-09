@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "util/base64.h"
 #include "imap/imap.h"
 #include "log.h"
 #include "urlparse.h"
@@ -108,7 +109,7 @@ void handle_imap_logged_in(struct imap_connection *imap, void *data,
 	if (status == STATUS_OK) {
 		worker_post_message(pipe, WORKER_CONNECT_DONE, NULL, NULL);
 	} else {
-		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, strdup(args));
+		worker_post_message(pipe, WORKER_CONNECT_ERROR, NULL, args ? strdup(args) : NULL);
 	}
 }
 
@@ -148,10 +149,28 @@ void handle_imap_cap(struct imap_connection *imap, void *data,
 	if (status == STATUS_PREAUTH) {
 		imap->logged_in = true;
 		worker_post_message(pipe, WORKER_CONNECT_DONE, NULL, NULL);
+	} else if (imap->cap->auth_plain) {
+		if (imap->uri->username && imap->uri->password) {
+			if (imap->cap->sasl_ir) {
+				int len = snprintf(NULL, 0, "%c%s%c%s",
+						'\0', imap->uri->username,
+						'\0', imap->uri->password);
+				char *buf = malloc(len + 1);
+				snprintf(buf, len + 1, "%c%s%c%s",
+						'\0', imap->uri->username,
+						'\0', imap->uri->password);
+				imap->logged_in = true;
+				int _;
+				char *enc = base64(buf, len, &_);
+				imap_send(imap, handle_imap_logged_in, pipe,
+						"AUTHENTICATE PLAIN %s", enc);
+				free(enc);
+				free(buf);
+			}
+		}
 	} else if (imap->cap->auth_login) {
 		if (imap->uri->username && imap->uri->password) {
 			imap->logged_in = true;
-			// TODO: Use literal strings?
 			imap_send(imap, handle_imap_logged_in, pipe, "LOGIN \"%s\" \"%s\"",
 					imap->uri->username, imap->uri->password);
 		}
