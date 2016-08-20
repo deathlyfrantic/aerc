@@ -17,7 +17,7 @@ struct list_data {
 };
 
 void imap_list_callback(struct imap_connection *imap,
-        void *_data, enum imap_status status, const char *args) {
+		void *_data, enum imap_status status, const char *args) {
 	/*
 	 * Listing complete. Process some things and let the main thread know.
 	 */

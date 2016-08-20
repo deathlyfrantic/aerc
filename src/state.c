@@ -14,7 +14,7 @@
 #include "worker.h"
 
 void set_status(struct account_state *account, enum account_status state,
-        const char *text) {
+		const char *text) {
 	free(account->status.text);
 	if (text == NULL) {
 		text = "Unknown error occured";

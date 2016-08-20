@@ -4,7 +4,7 @@
 #include "util/list.h"
 
 struct email_header {
-    char *key, *value;
+	char *key, *value;
 };
 
 int parse_headers(const char *headers, list_t *output);

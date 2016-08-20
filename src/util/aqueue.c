@@ -9,15 +9,15 @@
 #include "util/aqueue.h"
 
 struct aqueue_node {
-    void *value;
-    struct aqueue_node *next;
+	void *value;
+	struct aqueue_node *next;
 };
 
 typedef struct aqueue_node aqueue_node_t;
 
 struct aqueue {
-    aqueue_node_t *first;
-    atomic_intptr_t head, tail;
+	aqueue_node_t *first;
+	atomic_intptr_t head, tail;
 };
 
 aqueue_t *aqueue_new() {

@@ -20,78 +20,78 @@
  */
 
 enum worker_message_type {
-    /* Basics */
-    WORKER_ACK,
-    WORKER_END,
-    WORKER_OOM,
-    WORKER_UNSUPPORTED,
-    WORKER_CONFIGURE,
-    /* Connection */
-    WORKER_CONNECT,
-    WORKER_CONNECT_DONE,
-    WORKER_CONNECT_ERROR,
+	/* Basics */
+	WORKER_ACK,
+	WORKER_END,
+	WORKER_OOM,
+	WORKER_UNSUPPORTED,
+	WORKER_CONFIGURE,
+	/* Connection */
+	WORKER_CONNECT,
+	WORKER_CONNECT_DONE,
+	WORKER_CONNECT_ERROR,
 #ifdef USE_OPENSSL
-    WORKER_CONNECT_CERT_CHECK,
-    WORKER_CONNECT_CERT_OKAY,
+	WORKER_CONNECT_CERT_CHECK,
+	WORKER_CONNECT_CERT_OKAY,
 #endif
-    /* Listing */
-    WORKER_LIST,
-    WORKER_LIST_DONE,
-    WORKER_LIST_ERROR,
-    /* Selection */
-    WORKER_SELECT_MAILBOX,
-    WORKER_SELECT_MAILBOX_DONE,
-    WORKER_SELECT_MAILBOX_ERROR,
-    /* Notifications */
-    WORKER_MAILBOX_UPDATED,
-    /* Messages */
-    WORKER_FETCH_MESSAGES,
-    WORKER_FETCH_MESSAGE_FULL,
-    WORKER_MESSAGE_UPDATED,
-    /* Deleting things */
-    WORKER_DELETE_MAILBOX,
-    WORKER_MAILBOX_DELETED,
+	/* Listing */
+	WORKER_LIST,
+	WORKER_LIST_DONE,
+	WORKER_LIST_ERROR,
+	/* Selection */
+	WORKER_SELECT_MAILBOX,
+	WORKER_SELECT_MAILBOX_DONE,
+	WORKER_SELECT_MAILBOX_ERROR,
+	/* Notifications */
+	WORKER_MAILBOX_UPDATED,
+	/* Messages */
+	WORKER_FETCH_MESSAGES,
+	WORKER_FETCH_MESSAGE_FULL,
+	WORKER_MESSAGE_UPDATED,
+	/* Deleting things */
+	WORKER_DELETE_MAILBOX,
+	WORKER_MAILBOX_DELETED,
 };
 
 struct worker_pipe {
-    /* Messages from master->worker */
-    aqueue_t *actions;
-    /* Messages from worker->master */
-    aqueue_t *messages;
-    /* Arbitrary worker-specific data */
-    void *data;
+	/* Messages from master->worker */
+	aqueue_t *actions;
+	/* Messages from worker->master */
+	aqueue_t *messages;
+	/* Arbitrary worker-specific data */
+	void *data;
 };
 
 struct worker_message {
-    enum worker_message_type type;
-    struct worker_message *in_response_to;
-    void *data;
+	enum worker_message_type type;
+	struct worker_message *in_response_to;
+	void *data;
 };
 
 struct message_range {
-    int min, max;
+	int min, max;
 };
 
 struct aerc_message {
-    bool fetching, fetched, should_fetch;
-    int index;
-    long uid;
-    list_t *flags, *headers;
-    struct tm *internal_date;
+	bool fetching, fetched, should_fetch;
+	int index;
+	long uid;
+	list_t *flags, *headers;
+	struct tm *internal_date;
 };
 
 struct aerc_mailbox {
-    char *name;
-    bool read_write;
-    bool selected;
-    long exists, recent, unseen;
-    list_t *flags;
-    list_t *messages;
+	char *name;
+	bool read_write;
+	bool selected;
+	long exists, recent, unseen;
+	list_t *flags;
+	list_t *messages;
 };
 
 #ifdef USE_OPENSSL
 struct cert_check_message {
-    X509 *cert;
+	X509 *cert;
 };
 #endif
 

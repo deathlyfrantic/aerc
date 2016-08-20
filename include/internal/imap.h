@@ -6,8 +6,8 @@
 #include "imap/imap.h"
 
 struct imap_pending_callback {
-    imap_callback_t callback;
-    void *data;
+	imap_callback_t callback;
+	void *data;
 };
 
 int handle_line(struct imap_connection *imap, imap_arg_t *arg);
@@ -22,7 +22,7 @@ void handle_imap_list(struct imap_connection *imap, const char *token,
 void handle_imap_flags(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args);
 void handle_imap_existsunseenrecent(struct imap_connection *imap,
-        const char *token, const char *cmd, imap_arg_t *args);
+		const char *token, const char *cmd, imap_arg_t *args);
 void handle_imap_uidnext(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args);
 void handle_imap_readwrite(struct imap_connection *imap, const char *token,
@@ -46,7 +46,7 @@ struct mailbox *get_mailbox(struct imap_connection *imap, const char *name);
 struct mailbox *get_or_make_mailbox(struct imap_connection *imap,
 		const char *name);
 struct mailbox_flag *mailbox_get_flag(struct imap_connection *imap,
-        const char *mbox, const char *flag);
+		const char *mbox, const char *flag);
 void mailbox_free(struct mailbox *mbox);
 void mailbox_message_free(struct mailbox_message *msg);
 

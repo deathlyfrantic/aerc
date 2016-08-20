@@ -54,12 +54,12 @@ struct mailbox_message {
 };
 
 struct mailbox {
-    list_t *flags;
-    list_t *messages;
-    char *name;
-    long exists, recent, unseen;
-    long nextuid; // Predicted, not definite
-    bool read_write;
+	list_t *flags;
+	list_t *messages;
+	char *name;
+	long exists, recent, unseen;
+	long nextuid; // Predicted, not definite
+	bool read_write;
 	bool selected;
 };
 
@@ -87,12 +87,12 @@ struct imap_connection {
 };
 
 enum imap_type {
-	IMAP_ATOM,      /* imap->str is valid */
-	IMAP_NUMBER,    /* imap->num is valid */
-	IMAP_STRING,    /* imap->str is valid */
-	IMAP_LIST,      /* imap->list is valid */
+	IMAP_ATOM,	  /* imap->str is valid */
+	IMAP_NUMBER,	/* imap->num is valid */
+	IMAP_STRING,	/* imap->str is valid */
+	IMAP_LIST,	  /* imap->list is valid */
 	IMAP_RESPONSE,  /* imap->str is valid */
-	IMAP_NIL        /* Not actually used, will be IMAP_ATOM and imap->str will
+	IMAP_NIL		/* Not actually used, will be IMAP_ATOM and imap->str will
 						equal "NIL" */
 };
 
@@ -118,7 +118,7 @@ void imap_close(struct imap_connection *imap);
 void imap_list(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *refname, const char *boxname);
 void imap_capability(struct imap_connection *imap, imap_callback_t callback,
-        void *data);
+		void *data);
 void imap_select(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *mailbox);
 void imap_fetch(struct imap_connection *imap, imap_callback_t callback,

@@ -45,7 +45,7 @@ void handle_worker_message(struct account_state *account, struct worker_message 
 	/*
 	 * Handle incoming messages from a worker.
 	 */
-	for ( size_t i = 0;
+	for (size_t i = 0;
 			i < sizeof(message_handlers) / sizeof(struct message_handler);
 			++i) {
 		struct message_handler handler = message_handlers[i];

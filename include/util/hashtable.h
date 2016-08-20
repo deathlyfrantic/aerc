@@ -4,15 +4,15 @@
 #include <stdbool.h>
 
 typedef struct {
-    unsigned int key;
-    void *value;
-    void *next;
+	unsigned int key;
+	void *value;
+	void *next;
 } hashtable_entry_t;
 
 typedef struct {
-    unsigned int (*hash)(const void *);
-    hashtable_entry_t **buckets;
-    int bucket_count;
+	unsigned int (*hash)(const void *);
+	hashtable_entry_t **buckets;
+	int bucket_count;
 } hashtable_t;
 
 hashtable_t *create_hashtable(int buckets, unsigned int (*hash_function)(const void *));

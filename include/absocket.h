@@ -16,12 +16,12 @@
  */
 
 struct absocket {
-    int basefd;
-    bool use_ssl;
+	int basefd;
+	bool use_ssl;
 #ifdef USE_OPENSSL
-    SSL *ssl;
-    SSL_CTX *ctx;
-    X509 *cert;
+	SSL *ssl;
+	SSL_CTX *ctx;
+	X509 *cert;
 #endif
 };
 typedef struct absocket absocket_t;
