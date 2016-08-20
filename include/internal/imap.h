@@ -47,5 +47,7 @@ struct mailbox *get_or_make_mailbox(struct imap_connection *imap,
 		const char *name);
 struct mailbox_flag *mailbox_get_flag(struct imap_connection *imap,
         const char *mbox, const char *flag);
+void mailbox_free(struct mailbox *mbox);
+void mailbox_message_free(struct mailbox_message *msg);
 
 #endif

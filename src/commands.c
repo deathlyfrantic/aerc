@@ -45,6 +45,16 @@ static void handle_cd(int argc, char **argv) {
 	free(joined);
 }
 
+static void handle_delete_mailbox(int argc, char **argv) {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	char *joined = join_args(argv, argc);
+	// TODO: Are you sure?
+	worker_post_action(account->worker.pipe, WORKER_DELETE_MAILBOX,
+			NULL, strdup(joined));
+	free(joined);
+}
+
 struct cmd_handler {
 	char *command;
 	void (*handler)(int argc, char **argv);
@@ -53,6 +63,7 @@ struct cmd_handler {
 // Keep alphabetized, please
 struct cmd_handler cmd_handlers[] = {
 	{ "cd", handle_cd },
+	{ "delete-mailbox", handle_delete_mailbox },
 	{ "exit", handle_quit },
 	{ "next-message", handle_next_message },
 	{ "previous-message", handle_previous_message },

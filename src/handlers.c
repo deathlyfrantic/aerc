@@ -142,3 +142,16 @@ void handle_worker_message_updated(struct account_state *account,
 		}
 	}
 }
+
+void handle_worker_mailbox_deleted(struct account_state *account,
+		struct worker_message *message) {
+	worker_log(L_DEBUG, "Deleting mailbox on main thread");
+	struct aerc_mailbox *mbox = get_aerc_mailbox(account, (const char *)message->data);
+	for (int i = 0; i < account->mailboxes->length; ++i) {
+		if (account->mailboxes->items[i] == mbox) {
+			list_del(account->mailboxes, i);
+		}
+	}
+	free_aerc_mailbox(mbox);
+	rerender();
+}

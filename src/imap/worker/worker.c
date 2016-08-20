@@ -29,6 +29,7 @@ struct action_handler handlers[] = {
 	{ WORKER_CONNECT_CERT_OKAY, handle_worker_cert_okay },
 #endif
 	{ WORKER_FETCH_MESSAGES, handle_worker_fetch_messages },
+	{ WORKER_DELETE_MAILBOX, handle_worker_delete_mailbox },
 };
 
 void handle_message(struct worker_pipe *pipe, struct worker_message *message) {
@@ -109,6 +110,11 @@ static void update_message(struct imap_connection *imap,
 	worker_post_message(pipe, WORKER_MESSAGE_UPDATED, NULL, aerc_msg);
 }
 
+static void delete_mailbox(struct imap_connection *imap, const char *mailbox) {
+	struct worker_pipe *pipe = imap->data;
+	worker_post_message(pipe, WORKER_MAILBOX_DELETED, NULL, strdup(mailbox));
+}
+
 void *imap_worker(void *_pipe) {
 	/*
 	 * The IMAP worker's main thread. Receives messages over the async queue and
@@ -120,6 +126,7 @@ void *imap_worker(void *_pipe) {
 	pipe->data = imap;
 	imap->data = pipe;
 	imap->events.mailbox_updated = update_mailbox;
+	imap->events.mailbox_deleted = delete_mailbox;
 	imap->events.message_updated = update_message;
 	worker_log(L_DEBUG, "Starting IMAP worker");
 	while (1) {

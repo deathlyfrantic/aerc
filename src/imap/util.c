@@ -8,6 +8,7 @@
 #include <strings.h>
 
 #include "imap/imap.h"
+#include "email/headers.h"
 #include "util/list.h"
 
 static int get_mbox_compare(const void *_mbox, const void *_name) {
@@ -51,4 +52,31 @@ struct mailbox_flag *mailbox_get_flag(struct imap_connection *imap,
 		}
 	}
 	return NULL;
+}
+
+void mailbox_message_free(struct mailbox_message *msg) {
+	for (int i = 0; i < msg->flags->length; ++i) {
+		char *f = msg->flags->items[i];
+		free(f);
+	}
+	list_free(msg->flags);
+	free_headers(msg->headers);
+	free(msg->internal_date);
+	free(msg);
+}
+
+void mailbox_free(struct mailbox *mbox) {
+	for (int i = 0; i < mbox->flags->length; ++i) {
+		struct mailbox_flag *f = mbox->flags->items[i];
+		free(f->name);
+		free(f);
+	}
+	list_free(mbox->flags);
+	for (int i = 0; i < mbox->messages->length; ++i) {
+		struct mailbox_message *m = mbox->messages->items[i];
+		mailbox_message_free(m);
+	}
+	list_free(mbox->messages);
+	free(mbox->name);
+	free(mbox);
 }

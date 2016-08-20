@@ -66,6 +66,7 @@ struct mailbox {
 struct imap_connection {
 	struct {
 		void (*mailbox_updated)(struct imap_connection *);
+		void (*mailbox_deleted)(struct imap_connection *, const char *name);
 		void (*message_updated)(struct imap_connection *, struct mailbox_message *);
 	} events;
 
@@ -122,5 +123,7 @@ void imap_select(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *mailbox);
 void imap_fetch(struct imap_connection *imap, imap_callback_t callback,
 		void *data, int min, int max, const char *what);
+void imap_delete(struct imap_connection *imap, imap_callback_t callback,
+		void *data, const char *mailbox);
 
 #endif

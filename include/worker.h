@@ -47,7 +47,10 @@ enum worker_message_type {
     /* Messages */
     WORKER_FETCH_MESSAGES,
     WORKER_FETCH_MESSAGE_FULL,
-    WORKER_MESSAGE_UPDATED
+    WORKER_MESSAGE_UPDATED,
+    /* Deleting things */
+    WORKER_DELETE_MAILBOX,
+    WORKER_MAILBOX_DELETED,
 };
 
 struct worker_pipe {
