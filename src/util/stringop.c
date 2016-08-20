@@ -73,8 +73,7 @@ void free_flat_list(list_t *list) {
 	/*
 	 * Frees a list_t and each item inside of it.
 	 */
-	int i;
-	for (i = 0; i < list->length; ++i) {
+	for (size_t i = 0; i < list->length; ++i) {
 		free(list->items[i]);
 	}
 	list_free(list);
@@ -169,7 +168,7 @@ char *join_list(list_t *list, char *separator) {
 		len += (list->length - 1) * sep_len;
 	}
 
-	for (int i = 0; i < list->length; i++) {
+	for (size_t i = 0; i < list->length; i++) {
 		len += strlen(list->items[i]);
 	}
 
@@ -178,7 +177,7 @@ char *join_list(list_t *list, char *separator) {
 	char *p = res + strlen(list->items[0]);
 	strcpy(res, list->items[0]);
 
-	for (int i = 1; i < list->length; i++) {
+	for (size_t i = 1; i < list->length; i++) {
 		if (sep_len) {
 			memcpy(p, separator, sep_len);
 			p += sep_len;

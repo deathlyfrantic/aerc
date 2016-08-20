@@ -247,11 +247,11 @@ static void config_defaults(struct aerc_config *config) {
 }
 
 void free_config(struct aerc_config *config) {
-	for (int i = 0; i < config->accounts->length; ++i) {
+	for (size_t i = 0; i < config->accounts->length; ++i) {
 		struct account_config *account = config->accounts->items[i];
 		free(account->name);
 		free(account->source);
-		for (int j = 0; j < account->extras->length; ++j) {
+		for (size_t j = 0; j < account->extras->length; ++j) {
 			struct account_config_extra *extra = account->extras->items[i];
 			free(extra->key);
 			free(extra->value);

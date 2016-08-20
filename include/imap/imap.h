@@ -122,7 +122,7 @@ void imap_capability(struct imap_connection *imap, imap_callback_t callback,
 void imap_select(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *mailbox);
 void imap_fetch(struct imap_connection *imap, imap_callback_t callback,
-		void *data, int min, int max, const char *what);
+		void *data, size_t min, size_t max, const char *what);
 void imap_delete(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *mailbox);
 

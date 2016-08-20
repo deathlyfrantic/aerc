@@ -91,7 +91,7 @@ void rerender() {
 	tb_present();
 }
 
-void rerender_item(int index) {
+void rerender_item(size_t index) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
 	struct aerc_mailbox *mailbox = get_aerc_mailbox(account, account->selected);
@@ -101,9 +101,9 @@ void rerender_item(int index) {
 	int x = folder_width, y = mailbox->messages->length - account->ui.list_offset - index;
 	struct aerc_message *message = mailbox->messages->items[index];
 	if (!message) return;
-	int selected = mailbox->messages->length - account->ui.selected_message - 1;
+	size_t selected = mailbox->messages->length - account->ui.selected_message - 1;
 	// TODO: Consider scrolling
-	for (int i = 0; i < loading_indicators->length; ++i) {
+	for (size_t i = 0; i < loading_indicators->length; ++i) {
 		struct loading_indicator *indic = loading_indicators->items[i];
 		if (indic->x == x && indic->y == y) {
 			list_del(loading_indicators, i);
@@ -134,8 +134,8 @@ void add_loading(int x, int y) {
 }
 
 static void command_input(uint16_t ch) {
-	int size = tb_utf8_char_length(ch);
-	int len = strlen(state->command.text);
+	size_t size = tb_utf8_char_length(ch);
+	size_t len = strlen(state->command.text);
 	if (state->command.length < len + size + 1) {
 		state->command.text = realloc(state->command.text,
 				state->command.length + 1024);
@@ -177,7 +177,7 @@ static void command_delete_word() {
 bool ui_tick() {
 	if (loading_indicators->length > 1) {
 		frame++;
-		for (int i = 0; i < loading_indicators->length; ++i) {
+		for (size_t i = 0; i < loading_indicators->length; ++i) {
 			struct loading_indicator *indic = loading_indicators->items[i];
 			render_loading(indic->x, indic->y);
 		}

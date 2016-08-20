@@ -19,7 +19,7 @@
 #include "util/stringop.h"
 
 void imap_fetch(struct imap_connection *imap, imap_callback_t callback,
-		void *data, int min, int max, const char *what) {
+		void *data, size_t min, size_t max, const char *what) {
 	// TODO: More optimal strategy for splitting up a range with intermetient
 	// fetching messages into several sub-ranges instead of sending each
 	// individually
@@ -28,7 +28,7 @@ void imap_fetch(struct imap_connection *imap, imap_callback_t callback,
 	struct mailbox *mbox = get_mailbox(imap, imap->selected);
 	assert(min >= 1);
 	assert(max <= mbox->messages->length);
-	for (int i = min; i < max; ++i) {
+	for (size_t i = min; i < max; ++i) {
 		struct mailbox_message *msg = mbox->messages->items[i - 1];
 		if (msg->fetching) {
 			seperate = true;

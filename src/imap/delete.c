@@ -24,7 +24,7 @@ static void imap_delete_callback(struct imap_connection *imap,
 	struct callback_data *cbdata = data;
 	struct mailbox *mbox = get_mailbox(imap, cbdata->mailbox);
 	if (status == STATUS_OK) {
-		for (int i = 0; i < imap->mailboxes->length; ++i) {
+		for (size_t i = 0; i < imap->mailboxes->length; ++i) {
 			if (imap->mailboxes->items[i] == mbox) {
 				list_del(imap->mailboxes, i);
 				break;

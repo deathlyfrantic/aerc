@@ -70,7 +70,7 @@ int parse_headers(const char *headers, list_t *output) {
 
 void free_headers(list_t *headers) {
 	if (!headers) return;
-	for (int i = 0; i < headers->length; ++i) {
+	for (size_t i = 0; i < headers->length; ++i) {
 		struct email_header *header = headers->items[i];
 		if (header) {
 			free(header->key);

@@ -31,7 +31,7 @@ void handle_worker_list_done(struct account_state *account,
 	account->mailboxes = message->data;
 	char *wanted = "INBOX";
 	struct account_config *c = config_for_account(account->name);
-	for (int i = 0; i < c->extras->length; ++i) {
+	for (size_t i = 0; i < c->extras->length; ++i) {
 		struct account_config_extra *extra = c->extras->items[i];
 		if (strcmp(extra->key, "default") == 0) {
 			wanted = extra->value;
@@ -39,7 +39,7 @@ void handle_worker_list_done(struct account_state *account,
 		}
 	}
 	bool have_wanted = false;
-	for (int i = 0; i < account->mailboxes->length; ++i) {
+	for (size_t i = 0; i < account->mailboxes->length; ++i) {
 		struct aerc_mailbox *mbox = account->mailboxes->items[i];
 		if (strcmp(mbox->name, wanted) == 0) {
 			have_wanted = true;
@@ -70,7 +70,8 @@ void handle_worker_connect_cert_check(struct account_state *account,
 
 static void fetch_necessary(struct account_state *account,
 		struct aerc_mailbox *mbox) {
-	int min = -1, max = -1, i;
+	int min = -1, max = -1;
+	size_t i;
 	for (i = 0; i < mbox->messages->length; ++i) {
 		struct aerc_message *message = mbox->messages->items[i];
 		if (min == -1) {
@@ -110,7 +111,7 @@ void handle_worker_mailbox_updated(struct account_state *account,
 	struct aerc_mailbox *old = NULL;
 
 	bool rerendered = false;
-	for (int i = 0; i < account->mailboxes->length; ++i) {
+	for (size_t i = 0; i < account->mailboxes->length; ++i) {
 		old = account->mailboxes->items[i];
 		if (strcmp(old->name, new->name) == 0) {
 			account->mailboxes->items[i] = new;
@@ -131,7 +132,7 @@ void handle_worker_message_updated(struct account_state *account,
 	worker_log(L_DEBUG, "Updated message on main thread");
 	struct aerc_message *new = message->data;
 	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
-	for (int i = 0; i < mbox->messages->length; ++i) {
+	for (size_t i = 0; i < mbox->messages->length; ++i) {
 		struct aerc_message *old = mbox->messages->items[i];
 		if (old->index == new->index) {
 			free_aerc_message(mbox->messages->items[i]);
@@ -147,7 +148,7 @@ void handle_worker_mailbox_deleted(struct account_state *account,
 		struct worker_message *message) {
 	worker_log(L_DEBUG, "Deleting mailbox on main thread");
 	struct aerc_mailbox *mbox = get_aerc_mailbox(account, (const char *)message->data);
-	for (int i = 0; i < account->mailboxes->length; ++i) {
+	for (size_t i = 0; i < account->mailboxes->length; ++i) {
 		if (account->mailboxes->items[i] == mbox) {
 			list_del(account->mailboxes, i);
 		}

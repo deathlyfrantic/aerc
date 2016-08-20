@@ -24,7 +24,7 @@ void imap_list_callback(struct imap_connection *imap,
 	struct list_data *data = _data;
 	if (status == STATUS_OK) {
 		list_t *mboxes = create_list();
-		for (int i = 0; i < imap->mailboxes->length; ++i) {
+		for (size_t i = 0; i < imap->mailboxes->length; ++i) {
 			struct mailbox *source = imap->mailboxes->items[i];
 			struct aerc_mailbox *dest = serialize_mailbox(source);
 			list_add(mboxes, dest);

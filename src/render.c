@@ -35,7 +35,7 @@ void render_account_bar(int x, int y, int width, int folder_width) {
 	tb_printf(x, y, &cell, " "); x += 1;
 
 	/* Render account tabs */
-	for (int i = 0; i < state->accounts->length; ++i) {
+	for (size_t i = 0; i < state->accounts->length; ++i) {
 		struct account_state *account = state->accounts->items[i];
 		if (i == state->selected_account) {
 			get_color("account-selected", &cell);
@@ -73,7 +73,7 @@ void render_folder_list(int x, int y, int width, int height) {
 	_x = x, _y = y;
 	if (account->mailboxes) {
 		list_qsort(account->mailboxes, compare_mailboxes);
-		for (int i = 0; y < height && i < account->mailboxes->length; ++i, ++y) {
+		for (size_t i = 0; y < height && i < account->mailboxes->length; ++i, ++y) {
 			struct aerc_mailbox *mailbox = account->mailboxes->items[i];
 			if (strcmp(mailbox->name, account->selected) == 0) {
 				get_color("folder-selected", &cell);

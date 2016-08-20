@@ -26,8 +26,8 @@ struct account_state {
 	} status;
 
 	struct {
-		int selected_message;
-		int list_offset;
+		size_t selected_message;
+		size_t list_offset;
 	} ui;
 
 	char *name;
@@ -37,12 +37,12 @@ struct account_state {
 };
 
 struct aerc_state {
-	int selected_account;
+	size_t selected_account;
 	list_t *accounts;
 	bool exit;
 	struct {
 		char *text;
-		int length, index, scroll;
+		size_t length, index, scroll;
 	} command;
 };
 

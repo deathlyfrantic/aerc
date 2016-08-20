@@ -56,11 +56,11 @@ struct aerc_message *serialize_message(struct mailbox_message *source) {
 	}
 	dest->uid = source->uid;
 	dest->flags = create_list();
-	for (int i = 0; i < source->flags->length; ++i) {
+	for (size_t i = 0; i < source->flags->length; ++i) {
 		list_add(dest->flags, strdup(source->flags->items[i]));
 	}
 	dest->headers = create_list();
-	for (int i = 0; i < source->headers->length; ++i) {
+	for (size_t i = 0; i < source->headers->length; ++i) {
 		struct email_header *header = source->headers->items[i];
 		struct email_header *copy = malloc(sizeof(struct email_header));
 		copy->key = strdup(header->key);
@@ -80,13 +80,13 @@ struct aerc_mailbox *serialize_mailbox(struct mailbox *source) {
 	dest->unseen = source->unseen;
 	dest->selected = source->selected;
 	dest->flags = create_list();
-	for (int i = 0; i < source->flags->length; ++i) {
+	for (size_t i = 0; i < source->flags->length; ++i) {
 		struct mailbox_flag *flag = source->flags->items[i];
 		// TODO: Send along the permanent bool as well
 		list_add(dest->flags, strdup(flag->name));
 	}
 	dest->messages = create_list();
-	for (int i = 0; i < source->messages->length; ++i) {
+	for (size_t i = 0; i < source->messages->length; ++i) {
 		list_add(dest->messages, serialize_message(source->messages->items[i]));
 	}
 	return dest;

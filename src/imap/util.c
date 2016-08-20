@@ -45,7 +45,7 @@ struct mailbox_flag *mailbox_get_flag(struct imap_connection *imap,
 	if (!box) {
 		return NULL;
 	}
-	for (int i = 0; i < box->flags->length; ++i) {
+	for (size_t i = 0; i < box->flags->length; ++i) {
 		struct mailbox_flag *f = box->flags->items[i];
 		if (strcasecmp(f->name, flag) == 0) {
 			return f;
@@ -55,7 +55,7 @@ struct mailbox_flag *mailbox_get_flag(struct imap_connection *imap,
 }
 
 void mailbox_message_free(struct mailbox_message *msg) {
-	for (int i = 0; i < msg->flags->length; ++i) {
+	for (size_t i = 0; i < msg->flags->length; ++i) {
 		char *f = msg->flags->items[i];
 		free(f);
 	}
@@ -66,13 +66,13 @@ void mailbox_message_free(struct mailbox_message *msg) {
 }
 
 void mailbox_free(struct mailbox *mbox) {
-	for (int i = 0; i < mbox->flags->length; ++i) {
+	for (size_t i = 0; i < mbox->flags->length; ++i) {
 		struct mailbox_flag *f = mbox->flags->items[i];
 		free(f->name);
 		free(f);
 	}
 	list_free(mbox->flags);
-	for (int i = 0; i < mbox->messages->length; ++i) {
+	for (size_t i = 0; i < mbox->messages->length; ++i) {
 		struct mailbox_message *m = mbox->messages->items[i];
 		mailbox_message_free(m);
 	}

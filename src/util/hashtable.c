@@ -6,7 +6,7 @@
 
 #include "util/hashtable.h"
 
-hashtable_t *create_hashtable(int buckets, unsigned int (*hash_function)(const void *)) {
+hashtable_t *create_hashtable(size_t buckets, unsigned int (*hash_function)(const void *)) {
 	/*
 	 * We let you provide the hash function for this implementation, so you can
 	 * hash arbitrary data.
@@ -26,8 +26,7 @@ void free_bucket(hashtable_entry_t *bucket) {
 }
 
 void free_hashtable(hashtable_t *table) {
-	int i;
-	for (i = 0; i < table->bucket_count; ++i) {
+	for (size_t i = 0; i < table->bucket_count; ++i) {
 		free_bucket(table->buckets[i]);
 	}
 	free(table);

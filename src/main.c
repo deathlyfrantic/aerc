@@ -84,7 +84,7 @@ int main(int argc, char **argv) {
 
 	init_ui();
 
-	for (int i = 0; i < config->accounts->length; ++i) {
+	for (size_t i = 0; i < config->accounts->length; ++i) {
 		struct account_config *ac = config->accounts->items[i];
 		if (!ac->source) {
 			worker_log(L_ERROR, "No source configured for account %s", ac->name);
@@ -108,7 +108,7 @@ int main(int argc, char **argv) {
 
 	while (1) {
 		struct worker_message *msg;
-		for (int i = 0; i < state->accounts->length; ++i) {
+		for (size_t i = 0; i < state->accounts->length; ++i) {
 			struct account_state *account = state->accounts->items[i];
 			if (worker_get_message(account->worker.pipe, &msg)) {
 				handle_worker_message(account, msg);
