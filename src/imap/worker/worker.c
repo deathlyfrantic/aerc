@@ -77,6 +77,7 @@ struct aerc_mailbox *serialize_mailbox(struct mailbox *source) {
 	dest->exists = source->exists;
 	dest->recent = source->recent;
 	dest->unseen = source->unseen;
+	dest->selected = source->selected;
 	dest->flags = create_list();
 	for (int i = 0; i < source->flags->length; ++i) {
 		struct mailbox_flag *flag = source->flags->items[i];

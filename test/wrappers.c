@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include "tests.h"
 #include "util/hashtable.h"
 
@@ -19,7 +20,8 @@ void set_ab_recv_result(void *buffer, size_t size) {
 	ab_buffer_size = size;
 }
 
-int __wrap_ab_recv(absocket_t *socket, void *buffer, size_t *len) {
+int __wrap_ab_recv(absocket_t *socket, void *buffer, size_t len) {
+	assert_true(ab_buffer_size <= len);
 	if (ab_buffer) {
 		memcpy(buffer, ab_buffer, ab_buffer_size);
 		ab_buffer = NULL;

@@ -14,6 +14,29 @@
 #include "log.h"
 #include "util/list.h"
 
+struct callback_data {
+	void *data;
+	char *mailbox;
+	imap_callback_t callback;
+};
+
+static void imap_select_callback(struct imap_connection *imap,
+		void *data, enum imap_status status, const char *args) {
+	struct callback_data *cbdata = data;
+	struct mailbox *mbox = get_mailbox(imap, cbdata->mailbox);
+	if (status == STATUS_OK) {
+		mbox->selected = true;
+	}
+	if (cbdata->callback) {
+		cbdata->callback(imap, data, status, args);
+	}
+	if (imap->events.mailbox_updated) {
+		imap->events.mailbox_updated(imap);
+	}
+	free(cbdata->mailbox);
+	free(cbdata);
+}
+
 void imap_select(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *mailbox) {
 	if (mailbox_get_flag(imap, mailbox, "\\noselect")) {
@@ -21,7 +44,11 @@ void imap_select(struct imap_connection *imap, imap_callback_t callback,
 		return;
 	}
 	imap->selected = strdup(mailbox);
-	imap_send(imap, callback, data, "SELECT \"%s\"", mailbox);
+	struct callback_data *cbdata = malloc(sizeof(struct callback_data));
+	cbdata->data = data;
+	cbdata->mailbox = strdup(mailbox);
+	cbdata->callback = callback;
+	imap_send(imap, imap_select_callback, cbdata, "SELECT \"%s\"", mailbox);
 }
 
 void handle_imap_existsunseenrecent(struct imap_connection *imap, const char *token,

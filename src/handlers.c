@@ -85,6 +85,8 @@ static void fetch_necessary(struct account_state *account,
 						sizeof(struct message_range));
 				range->min = min + 1;
 				range->max = max + 1;
+				worker_log(L_DEBUG, "Fetching message range %d - %d",
+						range->min, range->max);
 				worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
 						NULL, range);
 				min = max = -1;
@@ -96,6 +98,7 @@ static void fetch_necessary(struct account_state *account,
 		struct message_range *range = malloc(sizeof(struct message_range));
 		range->min = min + 1;
 		range->max = max + 1;
+		worker_log(L_DEBUG, "Fetching message range %d - %d", range->min, range->max);
 		worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
 				NULL, range);
 	}
@@ -117,7 +120,7 @@ void handle_worker_mailbox_updated(struct account_state *account,
 		}
 	}
 
-	if (rerendered) {
+	if (rerendered && new->selected) {
 		fetch_necessary(account, new);
 	}
 	free_aerc_mailbox(old);

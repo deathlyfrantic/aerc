@@ -26,6 +26,8 @@
 bool inited = false;
 hashtable_t *internal_handlers = NULL;
 
+FILE *raw;
+
 /*
  * The internal IMAP command handler type.
  */
@@ -130,6 +132,8 @@ void imap_send(struct imap_connection *imap, imap_callback_t callback,
 	 * invoke the callback.
 	 */
 	ab_send(imap->socket, cmd, len);
+	fwrite(cmd, 1, len, raw);
+	fflush(raw);
 	hashtable_set(imap->pending, tag, make_callback(callback, data));
 	if (strncmp("LOGIN ", buf, 6) != 0) {
 		worker_log(L_DEBUG, "-> %s %s", tag, buf);
@@ -193,6 +197,8 @@ void imap_receive(struct imap_connection *imap) {
 					char c = imap->line[len];
 					imap->line[len] = '\0';
 					worker_log(L_DEBUG, "Handling %s", imap->line);
+					fwrite(imap->line, 1, len, raw);
+					fflush(raw);
 					imap->line[len] = c;
 
 					handle_line(imap, arg);
@@ -205,6 +211,7 @@ void imap_receive(struct imap_connection *imap) {
 				if (len > 0 && remaining == 0) {
 					memmove(imap->line, imap->line + len, imap->line_size - len);
 					imap->line_index -= len;
+					memset(imap->line + imap->line_index, 0, imap->line_size - imap->line_index);
 				}
 			}
 		}
@@ -266,6 +273,7 @@ bool imap_connect(struct imap_connection *imap, const struct uri *uri,
 	 * Initializes an IMAP connection, connects to the server, and registers a
 	 * callback for when the connection is established and the server is ready.
 	 */
+	raw = fopen("raw.log", "w");
 	imap_init(imap);
 	imap->socket = absocket_new(uri, use_ssl);
 	if (!imap->socket) {

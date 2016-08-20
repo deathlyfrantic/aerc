@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
@@ -7,8 +8,12 @@
 #include "util/list.h"
 
 int parse_headers(const char *headers, list_t *output) {
-	while (strstr(headers, "\r\n") == headers) {
+	while (*headers && strstr(headers, "\r\n") == headers) {
 		headers += 2;
+	}
+	if (strstr(headers, "From: \"United") == headers) {
+		headers++;
+		headers--;
 	}
 	while (*headers) {
 		char *crlf = strstr(headers, "\r\n");
@@ -46,7 +51,9 @@ int parse_headers(const char *headers, list_t *output) {
 		char *key = malloc(colon_i + 1);
 		strncpy(key, headers, colon_i);
 		key[colon_i] = '\0';
-		colon_i += 2;
+		if (strstr(colon + 1, "\r\n") != colon + 1) {
+			colon_i += 2;
+		}
 		char *value = malloc(eol_i - colon_i + 1);
 		strncpy(value, headers + colon_i, eol_i - colon_i);
 		value[eol_i - colon_i] = '\0';

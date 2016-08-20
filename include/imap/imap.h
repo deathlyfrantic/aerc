@@ -16,41 +16,41 @@
 // - struct imap_connection
 
 struct imap_capabilities {
-    bool imap4rev1;
-    bool starttls;
-    bool logindisabled;
-    bool auth_plain;
-    bool auth_login;
-    bool idle;
-    bool sasl_ir;
+	bool imap4rev1;
+	bool starttls;
+	bool logindisabled;
+	bool auth_plain;
+	bool auth_login;
+	bool idle;
+	bool sasl_ir;
 };
 
 enum imap_status {
-    STATUS_OK, STATUS_NO, STATUS_BAD, STATUS_PREAUTH, STATUS_BYE,
-    STATUS_PRE_ERROR // Returned when our code anticipates an error
+	STATUS_OK, STATUS_NO, STATUS_BAD, STATUS_PREAUTH, STATUS_BYE,
+	STATUS_PRE_ERROR // Returned when our code anticipates an error
 };
 
 enum recv_mode {
-    RECV_WAIT,
-    RECV_LINE
+	RECV_WAIT,
+	RECV_LINE
 };
 
 struct imap_connection;
 
 typedef void (*imap_callback_t)(struct imap_connection *imap,
-        void *data, enum imap_status status, const char *args);
+		void *data, enum imap_status status, const char *args);
 
 struct mailbox_flag {
-    char *name;
-    bool permanent;
+	char *name;
+	bool permanent;
 };
 
 struct mailbox_message {
-    bool fetching, populated;
-    int index;
-    long uid;
-    list_t *flags, *headers;
-    struct tm *internal_date;
+	bool fetching, populated;
+	int index;
+	long uid;
+	list_t *flags, *headers;
+	struct tm *internal_date;
 };
 
 struct mailbox {
@@ -60,47 +60,48 @@ struct mailbox {
     long exists, recent, unseen;
     long nextuid; // Predicted, not definite
     bool read_write;
+	bool selected;
 };
 
 struct imap_connection {
-    struct {
-        void (*mailbox_updated)(struct imap_connection *);
-        void (*message_updated)(struct imap_connection *, struct mailbox_message *);
-    } events;
+	struct {
+		void (*mailbox_updated)(struct imap_connection *);
+		void (*message_updated)(struct imap_connection *, struct mailbox_message *);
+	} events;
 
-    void *data;
-    bool logged_in;
-    absocket_t *socket;
-    enum recv_mode mode;
-    char *line;
-    int line_index, line_size;
-    struct pollfd poll[1];
-    int next_tag;
-    hashtable_t *pending;
-    struct imap_capabilities *cap;
-    struct imap_state *state;
-    struct uri *uri;
-    list_t *mailboxes;
-    char *selected;
+	void *data;
+	bool logged_in;
+	absocket_t *socket;
+	enum recv_mode mode;
+	char *line;
+	int line_index, line_size;
+	struct pollfd poll[1];
+	int next_tag;
+	hashtable_t *pending;
+	struct imap_capabilities *cap;
+	struct imap_state *state;
+	struct uri *uri;
+	list_t *mailboxes;
+	char *selected;
 };
 
 enum imap_type {
-    IMAP_ATOM,      /* imap->str is valid */
-    IMAP_NUMBER,    /* imap->num is valid */
-    IMAP_STRING,    /* imap->str is valid */
-    IMAP_LIST,      /* imap->list is valid */
-    IMAP_RESPONSE,  /* imap->str is valid */
-    IMAP_NIL        /* Not actually used, will be IMAP_ATOM and imap->str will
-                       equal "NIL" */
+	IMAP_ATOM,      /* imap->str is valid */
+	IMAP_NUMBER,    /* imap->num is valid */
+	IMAP_STRING,    /* imap->str is valid */
+	IMAP_LIST,      /* imap->list is valid */
+	IMAP_RESPONSE,  /* imap->str is valid */
+	IMAP_NIL        /* Not actually used, will be IMAP_ATOM and imap->str will
+						equal "NIL" */
 };
 
 struct imap_arg {
-    enum imap_type type;
-    struct imap_arg *next;
-    char *str;
-    long num;
-    struct imap_arg *list;
-    char *original;
+	enum imap_type type;
+	struct imap_arg *next;
+	char *str;
+	long num;
+	struct imap_arg *list;
+	char *original;
 };
 typedef struct imap_arg imap_arg_t;
 

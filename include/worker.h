@@ -80,6 +80,7 @@ struct aerc_message {
 struct aerc_mailbox {
     char *name;
     bool read_write;
+    bool selected;
     long exists, recent, unseen;
     list_t *flags;
     list_t *messages;
