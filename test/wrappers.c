@@ -28,3 +28,7 @@ int __wrap_ab_recv(absocket_t *socket, void *buffer, size_t len) {
 	}
 	return mock_type(int);
 }
+
+void __wrap_absocket_free(void *socket) {
+	// no-op
+}

@@ -132,8 +132,10 @@ void imap_send(struct imap_connection *imap, imap_callback_t callback,
 	 * invoke the callback.
 	 */
 	ab_send(imap->socket, cmd, len);
-	fwrite(cmd, 1, len, raw);
-	fflush(raw);
+	if (raw) {
+		fwrite(cmd, 1, len, raw);
+		fflush(raw);
+	}
 	hashtable_set(imap->pending, tag, make_callback(callback, data));
 	if (strncmp("LOGIN ", buf, 6) != 0) {
 		worker_log(L_DEBUG, "-> %s %s", tag, buf);
@@ -197,8 +199,10 @@ void imap_receive(struct imap_connection *imap) {
 					char c = imap->line[len];
 					imap->line[len] = '\0';
 					worker_log(L_DEBUG, "Handling %s", imap->line);
-					fwrite(imap->line, 1, len, raw);
-					fflush(raw);
+					if (raw) {
+						fwrite(imap->line, 1, len, raw);
+						fflush(raw);
+					}
 					imap->line[len] = c;
 
 					handle_line(imap, arg);
