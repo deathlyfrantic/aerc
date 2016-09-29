@@ -20,5 +20,6 @@ int __wrap_ab_recv(absocket_t *socket, void *buffer, size_t len);
 int run_tests_urlparse();
 int run_tests_imap();
 int run_tests_headers();
+int run_tests_bind();
 
 #endif
