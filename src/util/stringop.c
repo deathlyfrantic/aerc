@@ -180,6 +180,10 @@ char *join_list(list_t *list, char *separator) {
 		len += strlen(list->items[i]);
 	}
 
+	if(len == 0) {
+		return strdup("");
+	}
+
 	char *res = malloc(len);
 
 	char *p = res + strlen(list->items[0]);
