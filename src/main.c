@@ -11,6 +11,7 @@
 #include <unistd.h>
 
 #include "absocket.h"
+#include "bind.h"
 #include "colors.h"
 #include "config.h"
 #include "handlers.h"
@@ -20,6 +21,7 @@
 #include "state.h"
 #include "ui.h"
 #include "util/list.h"
+#include "util/stringop.h"
 
 struct aerc_state *state;
 
@@ -56,9 +58,24 @@ void handle_worker_message(struct account_state *account, struct worker_message 
 	}
 }
 
-void init_state() {
+static void init_state() {
 	state = calloc(1, sizeof(struct aerc_state));
 	state->accounts = create_list();
+	state->binds = malloc(sizeof(struct bind));
+	init_bind(state->binds);
+
+	//Hardcode some default binds for now
+	bind_add(state->binds, "q", "quit");
+	bind_add(state->binds, "Ctrl+c", "quit");
+	bind_add(state->binds, "Ctrl+j", "next-message");
+	bind_add(state->binds, "Ctrl+k", "previous-message");
+}
+
+static void cleanup_state() {
+	destroy_bind(state->binds);
+	free_flat_list(state->accounts);
+	free(state->command.text);
+	free(state);
 }
 
 int main(int argc, char **argv) {
@@ -125,5 +142,6 @@ int main(int argc, char **argv) {
 	}
 
 	teardown_ui();
+	cleanup_state();
 	return 0;
 }

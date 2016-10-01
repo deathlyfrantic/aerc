@@ -226,27 +226,17 @@ bool ui_tick() {
 				state->command.index = 0;
 				state->command.scroll = 0;
 				rerender();
+			} else {
+				// Send input to bind mapper
+				const char* command = bind_handle_key_event(state->binds, &event);
+				if(command) {
+					//Handle any generated commands
+					handle_command(command);
+				}
 			}
-			// Temporary:
-			if (event.ch == 'q' || event.key == TB_KEY_CTRL_C) {
-				return false;
-			}
-			if (event.key == TB_KEY_ARROW_RIGHT) {
-				state->selected_account++;
-				state->selected_account %= state->accounts->length;
-				rerender();
-			}
-			if (event.key == TB_KEY_ARROW_LEFT) {
-				state->selected_account--;
-				state->selected_account %= state->accounts->length;
-				rerender();
-			}
-			// /temporary
-		}
 		if (event.key == TB_KEY_CTRL_L) {
 			rerender();
 		}
-		// TODO: Handle other keys
 		break;
 	case -1:
 		return false;
