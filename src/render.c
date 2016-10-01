@@ -1,3 +1,4 @@
+#include <malloc.h>
 #include <string.h>
 #include <termbox.h>
 #include <time.h>
@@ -121,11 +122,29 @@ static void render_command(int x, int y, int width) {
 	tb_printf(x, y, &cell, ":%s", state->command.text);
 }
 
+static void render_partial_input(int x, int y, int width, const char* input) {
+	struct tb_cell cell;
+	get_color("ex-line", &cell);
+	cell.ch = ' ';
+	for (int _x = 0; _x < width; ++_x) {
+		tb_put_cell(x + _x, y, &cell);
+	}
+	tb_printf(x, y, &cell, "> %s", input);
+}
+
 void render_status(int x, int y, int width) {
 	if (state->command.text != NULL) {
 		render_command(x, y, width);
 		return;
 	}
+
+	char* input = bind_input_buffer(state->binds);
+	if(strlen(input) > 0) {
+		render_partial_input(x, y, width, input);
+		free(input);
+		return;
+	}
+	free(input);
 
 	struct account_state *account =
 		state->accounts->items[state->selected_account];

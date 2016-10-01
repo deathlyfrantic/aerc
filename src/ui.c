@@ -225,7 +225,6 @@ bool ui_tick() {
 				state->command.length = 1024;
 				state->command.index = 0;
 				state->command.scroll = 0;
-				rerender();
 			} else {
 				// Send input to bind mapper
 				const char* command = bind_handle_key_event(state->binds, &event);
@@ -234,7 +233,6 @@ bool ui_tick() {
 					handle_command(command);
 				}
 			}
-		if (event.key == TB_KEY_CTRL_L) {
 			rerender();
 		}
 		break;
