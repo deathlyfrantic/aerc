@@ -174,24 +174,15 @@ static void command_delete_word() {
 	rerender();
 }
 
-bool ui_tick() {
-	if (loading_indicators->length > 1) {
-		frame++;
-		for (size_t i = 0; i < loading_indicators->length; ++i) {
-			struct loading_indicator *indic = loading_indicators->items[i];
-			render_loading(indic->x, indic->y);
-		}
-		tb_present();
-	}
-
-	struct tb_event event;
-	switch (tb_peek_event(&event, 0)) {
+static bool process_event(struct tb_event* event)
+{
+	switch (event->type) {
 	case TB_EVENT_RESIZE:
 		rerender();
 		break;
 	case TB_EVENT_KEY:
 		if (state->command.text) {
-			switch (event.key) {
+			switch (event->key) {
 			case TB_KEY_ESC:
 				abort_command();
 				break;
@@ -213,13 +204,13 @@ bool ui_tick() {
 				abort_command();
 				break;
 			default:
-				if (event.ch && !event.mod) {
-					command_input(event.ch);
+				if (event->ch && !event->mod) {
+					command_input(event->ch);
 				}
 				break;
 			}
 		} else {
-			if (event.ch == ':' && !event.mod) {
+			if (event->ch == ':' && !event->mod) {
 				state->command.text = malloc(1024);
 				state->command.text[0] = '\0';
 				state->command.length = 1024;
@@ -227,7 +218,7 @@ bool ui_tick() {
 				state->command.scroll = 0;
 			} else {
 				// Send input to bind mapper
-				const char* command = bind_handle_key_event(state->binds, &event);
+				const char* command = bind_handle_key_event(state->binds, event);
 				if(command) {
 					//Handle any generated commands
 					handle_command(command);
@@ -236,8 +227,46 @@ bool ui_tick() {
 			rerender();
 		}
 		break;
-	case -1:
-		return false;
 	}
+
+	return !state->exit;
+}
+
+bool ui_tick() {
+	if (loading_indicators->length > 1) {
+		frame++;
+		for (size_t i = 0; i < loading_indicators->length; ++i) {
+			struct loading_indicator *indic = loading_indicators->items[i];
+			render_loading(indic->x, indic->y);
+		}
+		tb_present();
+	}
+
+	aqueue_t *events = aqueue_new();
+
+	while(1) {
+		struct tb_event *event = malloc(sizeof(struct tb_event));
+		//Fetch an event and enqueue it if we can
+		if(tb_peek_event(event, 0) < 1 || !aqueue_enqueue(events, event)) {
+			free(event);
+			break;
+		}
+	}
+
+	struct tb_event *event;
+	while(aqueue_dequeue(events, (void**)&event)) {
+		if(!process_event(event)) {
+			state->exit = true;
+			break;
+		}
+	}
+
+	//If there's events in the queue still, it's because we're exiting, and we
+	//need to clean up.
+	while(aqueue_dequeue(events, (void**)&event)) {
+		free(event);
+	}
+	aqueue_free(events);
+
 	return !state->exit;
 }
