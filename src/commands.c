@@ -34,6 +34,18 @@ static void handle_previous_message(int argc, char **argv) {
 	}
 }
 
+static void handle_next_mailbox(int argc, char **argv) {
+	state->selected_account++;
+	state->selected_account %= state->accounts->length;
+	rerender();
+}
+
+static void handle_previous_mailbox(int argc, char **argv) {
+	state->selected_account--;
+	state->selected_account %= state->accounts->length;
+	rerender();
+}
+
 static void handle_cd(int argc, char **argv) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
@@ -65,7 +77,9 @@ struct cmd_handler cmd_handlers[] = {
 	{ "cd", handle_cd },
 	{ "delete-mailbox", handle_delete_mailbox },
 	{ "exit", handle_quit },
+	{ "next-mailbox", handle_next_mailbox },
 	{ "next-message", handle_next_message },
+	{ "previous-mailbox", handle_previous_mailbox },
 	{ "previous-message", handle_previous_message },
 	{ "q", handle_quit },
 	{ "quit", handle_quit }

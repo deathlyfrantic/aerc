@@ -67,8 +67,10 @@ static void init_state() {
 	//Hardcode some default binds for now
 	bind_add(state->binds, "q", "quit");
 	bind_add(state->binds, "Ctrl+c", "quit");
-	bind_add(state->binds, "Ctrl+j", "next-message");
-	bind_add(state->binds, "Ctrl+k", "previous-message");
+	bind_add(state->binds, "h", "previous-mailbox");
+	bind_add(state->binds, "j", "next-message");
+	bind_add(state->binds, "k", "previous-message");
+	bind_add(state->binds, "l", "next-mailbox");
 }
 
 static void cleanup_state() {
