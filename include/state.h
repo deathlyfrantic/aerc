@@ -41,6 +41,7 @@ struct aerc_state {
 	size_t selected_account;
 	list_t *accounts;
 	bool exit;
+	bool rerender;
 	struct {
 		char *text;
 		size_t length, index, scroll;
