@@ -121,6 +121,36 @@ static void test_translate_key_event(void **state)
 	}
 }
 
+static void test_translate_key_name(void **state)
+{
+	struct {
+		const char* str;
+		char ch;
+		int mod;
+		int key;
+	} pairs[] = {
+		{"Ctrl+a", 0, 0, TB_KEY_CTRL_A},
+		{"Left", 0, 0, TB_KEY_ARROW_LEFT},
+		{"Meta+Right", 0, TB_MOD_ALT, TB_KEY_ARROW_RIGHT},
+		{"Meta+j", 'j', TB_MOD_ALT, 0},
+	};
+
+	struct tb_event e;
+	memset(&e, 0, sizeof e);
+	for(size_t i = 0; i < sizeof pairs / sizeof pairs[0]; ++i) {
+		/* e = generate_event(pairs[i].ch, pairs[i].mod, pairs[i].key); */
+		struct tb_event* event = bind_translate_key_name(pairs[i].str);
+		assert_non_null(event);
+
+		//Check the parts of the event we care about
+		assert_int_equal(event->ch, pairs[i].ch);
+		assert_int_equal(event->mod, pairs[i].mod);
+		assert_int_equal(event->key, pairs[i].key);
+
+		free(event);
+	}
+}
+
 static void test_get_input_buffer(void **state)
 {
 	struct bind bind;
@@ -190,6 +220,7 @@ int run_tests_bind() {
 		cmocka_unit_test(test_accept_valid_keys),
 		cmocka_unit_test(test_reject_conflicting_keys),
 		cmocka_unit_test(test_translate_key_event),
+		cmocka_unit_test(test_translate_key_name),
 		cmocka_unit_test(test_get_input_buffer),
 		cmocka_unit_test(test_remember_binds),
 	};
