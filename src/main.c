@@ -65,12 +65,12 @@ static void init_state() {
 	init_bind(state->binds);
 
 	//Hardcode some default binds for now
-	bind_add(state->binds, "q", "quit");
-	bind_add(state->binds, "Ctrl+c", "quit");
-	bind_add(state->binds, "h", "previous-mailbox");
-	bind_add(state->binds, "j", "next-message");
-	bind_add(state->binds, "k", "previous-message");
-	bind_add(state->binds, "l", "next-mailbox");
+	bind_add(state->binds, "q", ":quit<Enter>");
+	bind_add(state->binds, "Ctrl+c", ":quit<Enter>");
+	bind_add(state->binds, "h", ":previous-mailbox<Enter>");
+	bind_add(state->binds, "j", ":next-message<Enter>");
+	bind_add(state->binds, "k", ":previous-message<Enter>");
+	bind_add(state->binds, "l", ":next-mailbox<Enter>");
 }
 
 static void cleanup_state() {

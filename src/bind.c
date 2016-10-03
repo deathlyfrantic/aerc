@@ -45,6 +45,69 @@ static const char* valid_special_stubs[] = {
 	"Delete",
 };
 
+static const struct {
+	const char* name;
+	int key;
+} key_name_pairs[] = {
+	{"F1", TB_KEY_F1},
+	{"F2", TB_KEY_F2},
+	{"F3", TB_KEY_F3},
+	{"F4", TB_KEY_F4},
+	{"F5", TB_KEY_F5},
+	{"F6", TB_KEY_F6},
+	{"F7", TB_KEY_F7},
+	{"F8", TB_KEY_F8},
+	{"F9", TB_KEY_F9},
+	{"F10", TB_KEY_F10},
+	{"F11", TB_KEY_F11},
+	{"F12", TB_KEY_F12},
+	{"Left", TB_KEY_ARROW_LEFT},
+	{"Right", TB_KEY_ARROW_RIGHT},
+	{"Up", TB_KEY_ARROW_UP},
+	{"Down", TB_KEY_ARROW_DOWN},
+	{"Enter", TB_KEY_ENTER},
+	{"Backspace", TB_KEY_BACKSPACE},
+	{"Backspace", TB_KEY_BACKSPACE2},
+	{"PageUp", TB_KEY_PGUP},
+	{"PageDown", TB_KEY_PGDN},
+	{"Home", TB_KEY_HOME},
+	{"End", TB_KEY_END},
+	{"Tab", TB_KEY_TAB},
+	{"Insert", TB_KEY_INSERT},
+	{"Delete", TB_KEY_DELETE},
+	{"Ctrl+~", TB_KEY_CTRL_TILDE},
+	{"Ctrl+a", TB_KEY_CTRL_A},
+	{"Ctrl+b", TB_KEY_CTRL_B},
+	{"Ctrl+c", TB_KEY_CTRL_C},
+	{"Ctrl+d", TB_KEY_CTRL_D},
+	{"Ctrl+e", TB_KEY_CTRL_E},
+	{"Ctrl+f", TB_KEY_CTRL_F},
+	{"Ctrl+g", TB_KEY_CTRL_G},
+	{"Ctrl+h", TB_KEY_CTRL_H},
+	{"Ctrl+i", TB_KEY_CTRL_I},
+	{"Ctrl+j", TB_KEY_CTRL_J},
+	{"Ctrl+k", TB_KEY_CTRL_K},
+	{"Ctrl+l", TB_KEY_CTRL_L},
+	{"Ctrl+m", TB_KEY_CTRL_M},
+	{"Ctrl+n", TB_KEY_CTRL_N},
+	{"Ctrl+o", TB_KEY_CTRL_O},
+	{"Ctrl+p", TB_KEY_CTRL_P},
+	{"Ctrl+q", TB_KEY_CTRL_Q},
+	{"Ctrl+r", TB_KEY_CTRL_R},
+	{"Ctrl+s", TB_KEY_CTRL_S},
+	{"Ctrl+t", TB_KEY_CTRL_T},
+	{"Ctrl+u", TB_KEY_CTRL_U},
+	{"Ctrl+v", TB_KEY_CTRL_V},
+	{"Ctrl+w", TB_KEY_CTRL_W},
+	{"Ctrl+x", TB_KEY_CTRL_X},
+	{"Ctrl+y", TB_KEY_CTRL_Y},
+	{"Ctrl+z", TB_KEY_CTRL_Z},
+	{"Ctrl+[", TB_KEY_CTRL_LSQ_BRACKET},
+	{"Ctrl+]", TB_KEY_CTRL_RSQ_BRACKET},
+	{"Ctrl+\\", TB_KEY_CTRL_BACKSLASH},
+	{"Ctrl+/", TB_KEY_CTRL_SLASH},
+};
+
 static void init_bind_node(struct bind_node* bn)
 {
 	bn->key = NULL;
@@ -237,82 +300,19 @@ static int print_event(char* buf, size_t len, struct tb_event* event)
 			return snprintf(buf, len, "%s%c", prefix, event->ch);
 	}
 
-	//Try the first set of special keys
-	switch(event->key) {
-		case TB_KEY_F1:          str = "F1";        break;
-		case TB_KEY_F2:          str = "F2";        break;
-		case TB_KEY_F3:          str = "F3";        break;
-		case TB_KEY_F4:          str = "F4";        break;
-		case TB_KEY_F5:          str = "F5";        break;
-		case TB_KEY_F6:          str = "F6";        break;
-		case TB_KEY_F7:          str = "F7";        break;
-		case TB_KEY_F8:          str = "F8";        break;
-		case TB_KEY_F9:          str = "F9";        break;
-		case TB_KEY_F10:         str = "F10";       break;
-		case TB_KEY_F11:         str = "F11";       break;
-		case TB_KEY_F12:         str = "F12";       break;
-		case TB_KEY_INSERT:      str = "Insert";    break;
-		case TB_KEY_DELETE:      str = "Delete";    break;
-		case TB_KEY_HOME:        str = "Home";      break;
-		case TB_KEY_END:         str = "End";       break;
-		case TB_KEY_PGUP:        str = "PageUp";    break;
-		case TB_KEY_PGDN:        str = "PageDown";  break;
-		case TB_KEY_ARROW_UP:    str = "Up";        break;
-		case TB_KEY_ARROW_DOWN:  str = "Down";      break;
-		case TB_KEY_ARROW_LEFT:  str = "Left";      break;
-		case TB_KEY_ARROW_RIGHT: str = "Right";     break;
-		case TB_KEY_SPACE:       str = "Space";     break;
-		case TB_KEY_TAB:         str = "Tab";       break;
-		case TB_KEY_BACKSPACE:
-		case TB_KEY_BACKSPACE2:  str = "Backspace"; break;
-		case TB_KEY_ENTER:       str = "Enter";     break;
+	//Try to find a special key
+	for(size_t i = 0; i < sizeof key_name_pairs / sizeof *key_name_pairs; ++i) {
+		if(event->key == key_name_pairs[i].key) {
+			str = key_name_pairs[i].name;
+			break;
+		}
 	}
-
 	//Was it one of the special keys?
 	if(str) {
 		return snprintf(buf, len, "%s%s", prefix, str);
 	}
 
-	//Other special, hardcoded cases
-	switch(event->key) {
-		case TB_KEY_CTRL_TILDE:       str = "Ctrl+~";  break;
-		case TB_KEY_CTRL_A:           str = "Ctrl+a";  break;
-		case TB_KEY_CTRL_B:           str = "Ctrl+b";  break;
-		case TB_KEY_CTRL_C:           str = "Ctrl+c";  break;
-		case TB_KEY_CTRL_D:           str = "Ctrl+d";  break;
-		case TB_KEY_CTRL_E:           str = "Ctrl+e";  break;
-		case TB_KEY_CTRL_F:           str = "Ctrl+f";  break;
-		case TB_KEY_CTRL_G:           str = "Ctrl+g";  break;
-		case TB_KEY_CTRL_H:           str = "Ctrl+h";  break;
-		case TB_KEY_CTRL_I:           str = "Ctrl+i";  break;
-		case TB_KEY_CTRL_J:           str = "Ctrl+j";  break;
-		case TB_KEY_CTRL_K:           str = "Ctrl+k";  break;
-		case TB_KEY_CTRL_L:           str = "Ctrl+l";  break;
-		case TB_KEY_CTRL_M:           str = "Ctrl+m";  break;
-		case TB_KEY_CTRL_N:           str = "Ctrl+n";  break;
-		case TB_KEY_CTRL_O:           str = "Ctrl+o";  break;
-		case TB_KEY_CTRL_P:           str = "Ctrl+p";  break;
-		case TB_KEY_CTRL_Q:           str = "Ctrl+q";  break;
-		case TB_KEY_CTRL_R:           str = "Ctrl+r";  break;
-		case TB_KEY_CTRL_S:           str = "Ctrl+s";  break;
-		case TB_KEY_CTRL_T:           str = "Ctrl+t";  break;
-		case TB_KEY_CTRL_U:           str = "Ctrl+u";  break;
-		case TB_KEY_CTRL_V:           str = "Ctrl+v";  break;
-		case TB_KEY_CTRL_W:           str = "Ctrl+w";  break;
-		case TB_KEY_CTRL_X:           str = "Ctrl+x";  break;
-		case TB_KEY_CTRL_Y:           str = "Ctrl+y";  break;
-		case TB_KEY_CTRL_Z:           str = "Ctrl+z";  break;
-		case TB_KEY_CTRL_LSQ_BRACKET: str = "Ctrl+[";  break;
-		case TB_KEY_CTRL_RSQ_BRACKET: str = "Ctrl+]";  break;
-		case TB_KEY_CTRL_BACKSLASH:   str = "Ctrl+\\"; break;
-		case TB_KEY_CTRL_SLASH:       str = "Ctrl+/";  break;
-	}
-
-	if(str) {
-		return snprintf(buf, len, "%s", str);
-	}
-
-	//No idea
+	//No idea what it's meant to be - give up
 	buf[0] = 0;
 	return 0;
 }
@@ -407,4 +407,19 @@ char* bind_translate_key_event(struct tb_event* event)
 		return strdup(buf);
 	else
 		return NULL;
+}
+
+struct tb_event* bind_translate_key_name(const char* key)
+{
+	for(size_t i = 0; i < sizeof key_name_pairs / sizeof *key_name_pairs; ++i) {
+		if(strcmp(key_name_pairs[i].name, key) == 0) {
+			struct tb_event* e = calloc(1, sizeof(struct tb_event));
+			e->type = TB_EVENT_KEY;
+			e->key = key_name_pairs[i].key;
+			return e;
+		}
+	}
+
+	//No matches, give up
+	return NULL;
 }

@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 201112LL
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -178,7 +180,40 @@ static void command_delete_word() {
 	need_rerender();
 }
 
-static bool process_event(struct tb_event* event)
+
+static struct tb_event *parse_input_command(const char* input, size_t* consumed)
+{
+	//Reached a null terminator?
+	if(!input[0]) {
+		return NULL;
+	}
+
+	//Look for a special input sequence like <Enter>
+	if(input[0] == '<') {
+		//Hit a '<', look for a '>'
+		const char* term = strchr(input, '>');
+		if(term) {
+			//So we've got a <> pair. Let's check what's inside.
+			char* buf = strdup(input + 1);
+			*strchr(buf, '>') = 0;
+
+			struct tb_event *e = bind_translate_key_name(buf);
+			free(buf);
+			if(e) {
+				*consumed += 1 + term - input;
+				return e;
+			}
+		}
+	}
+
+	struct tb_event *e = calloc(1, sizeof(struct tb_event));
+	e->type = TB_EVENT_KEY;
+	e->ch = input[0];
+	*consumed += 1;
+	return e;
+}
+
+static void process_event(struct tb_event* event, aqueue_t *event_queue)
 {
 	switch (event->type) {
 	case TB_EVENT_RESIZE:
@@ -224,8 +259,17 @@ static bool process_event(struct tb_event* event)
 				// Send input to bind mapper
 				const char* command = bind_handle_key_event(state->binds, event);
 				if(command) {
-					//Handle any generated commands
-					handle_command(command);
+					//Handle any generated input
+					size_t consumed = 0;
+					struct tb_event *new_event = NULL;
+
+					//Move through the command generating input events from it
+					while(1) {
+						new_event = parse_input_command(command + consumed, &consumed);
+						if(!new_event)
+							break;
+						aqueue_enqueue(event_queue, new_event);
+					}
 				}
 			}
 			need_rerender();
@@ -237,8 +281,6 @@ static bool process_event(struct tb_event* event)
 		state->rerender = false;
 		rerender();
 	}
-
-	return !state->exit;
 }
 
 bool ui_tick() {
@@ -264,10 +306,12 @@ bool ui_tick() {
 
 	struct tb_event *event;
 	while(aqueue_dequeue(events, (void**)&event)) {
-		if(!process_event(event)) {
-			state->exit = true;
+		process_event(event, events);
+		free(event);
+
+		//Break out early if requested
+		if(state->exit)
 			break;
-		}
 	}
 
 	//If there's events in the queue still, it's because we're exiting, and we
