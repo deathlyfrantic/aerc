@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 201112LL
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -68,6 +70,10 @@ int tb_printf(int x, int y, struct tb_cell *basis, const char *fmt, ...) {
 
 	free(buf);
 	return l;
+}
+
+static void need_rerender() {
+	state->rerender = true;
 }
 
 void rerender() {
@@ -143,13 +149,13 @@ static void command_input(uint16_t ch) {
 	}
 	memcpy(state->command.text + len, &ch, size);
 	state->command.text[len + size] = '\0';
-	rerender();
+	need_rerender();
 }
 
 static void abort_command() {
 	free(state->command.text);
 	state->command.text = NULL;
-	rerender();
+	need_rerender();
 }
 
 static void command_backspace() {
@@ -158,7 +164,7 @@ static void command_backspace() {
 		return;
 	}
 	state->command.text[len - 1] = '\0';
-	rerender();
+	need_rerender();
 }
 
 static void command_delete_word() {
@@ -171,27 +177,51 @@ static void command_delete_word() {
 	while (cmd != state->command.text && !isspace(*cmd)) --cmd;
 	if (cmd != state->command.text) ++cmd;
 	*cmd = '\0';
-	rerender();
+	need_rerender();
 }
 
-bool ui_tick() {
-	if (loading_indicators->length > 1) {
-		frame++;
-		for (size_t i = 0; i < loading_indicators->length; ++i) {
-			struct loading_indicator *indic = loading_indicators->items[i];
-			render_loading(indic->x, indic->y);
-		}
-		tb_present();
+
+static struct tb_event *parse_input_command(const char* input, size_t* consumed)
+{
+	//Reached a null terminator?
+	if(!input[0]) {
+		return NULL;
 	}
 
-	struct tb_event event;
-	switch (tb_peek_event(&event, 0)) {
+	//Look for a special input sequence like <Enter>
+	if(input[0] == '<') {
+		//Hit a '<', look for a '>'
+		const char* term = strchr(input, '>');
+		if(term) {
+			//So we've got a <> pair. Let's check what's inside.
+			char* buf = strdup(input + 1);
+			*strchr(buf, '>') = 0;
+
+			struct tb_event *e = bind_translate_key_name(buf);
+			free(buf);
+			if(e) {
+				*consumed += 1 + term - input;
+				return e;
+			}
+		}
+	}
+
+	struct tb_event *e = calloc(1, sizeof(struct tb_event));
+	e->type = TB_EVENT_KEY;
+	e->ch = input[0];
+	*consumed += 1;
+	return e;
+}
+
+static void process_event(struct tb_event* event, aqueue_t *event_queue)
+{
+	switch (event->type) {
 	case TB_EVENT_RESIZE:
-		rerender();
+		need_rerender();
 		break;
 	case TB_EVENT_KEY:
 		if (state->command.text) {
-			switch (event.key) {
+			switch (event->key) {
 			case TB_KEY_ESC:
 				abort_command();
 				break;
@@ -213,43 +243,83 @@ bool ui_tick() {
 				abort_command();
 				break;
 			default:
-				if (event.ch && !event.mod) {
-					command_input(event.ch);
+				if (event->ch && !event->mod) {
+					command_input(event->ch);
 				}
 				break;
 			}
 		} else {
-			if (event.ch == ':' && !event.mod) {
+			if (event->ch == ':' && !event->mod) {
 				state->command.text = malloc(1024);
 				state->command.text[0] = '\0';
 				state->command.length = 1024;
 				state->command.index = 0;
 				state->command.scroll = 0;
-				rerender();
+			} else {
+				// Send input to bind mapper
+				const char* command = bind_handle_key_event(state->binds, event);
+				if(command) {
+					//Handle any generated input
+					size_t consumed = 0;
+					struct tb_event *new_event = NULL;
+
+					//Move through the command generating input events from it
+					while(1) {
+						new_event = parse_input_command(command + consumed, &consumed);
+						if(!new_event)
+							break;
+						aqueue_enqueue(event_queue, new_event);
+					}
+				}
 			}
-			// Temporary:
-			if (event.ch == 'q' || event.key == TB_KEY_CTRL_C) {
-				return false;
-			}
-			if (event.key == TB_KEY_ARROW_RIGHT) {
-				state->selected_account++;
-				state->selected_account %= state->accounts->length;
-				rerender();
-			}
-			if (event.key == TB_KEY_ARROW_LEFT) {
-				state->selected_account--;
-				state->selected_account %= state->accounts->length;
-				rerender();
-			}
-			// /temporary
+			need_rerender();
 		}
-		if (event.key == TB_KEY_CTRL_L) {
-			rerender();
-		}
-		// TODO: Handle other keys
 		break;
-	case -1:
-		return false;
 	}
+
+	if(state->rerender) {
+		state->rerender = false;
+		rerender();
+	}
+}
+
+bool ui_tick() {
+	if (loading_indicators->length > 1) {
+		frame++;
+		for (size_t i = 0; i < loading_indicators->length; ++i) {
+			struct loading_indicator *indic = loading_indicators->items[i];
+			render_loading(indic->x, indic->y);
+		}
+		tb_present();
+	}
+
+	aqueue_t *events = aqueue_new();
+
+	while(1) {
+		struct tb_event *event = malloc(sizeof(struct tb_event));
+		//Fetch an event and enqueue it if we can
+		if(tb_peek_event(event, 0) < 1 || !aqueue_enqueue(events, event)) {
+			free(event);
+			break;
+		}
+	}
+
+	struct tb_event *event;
+	while(aqueue_dequeue(events, (void**)&event)) {
+		process_event(event, events);
+		free(event);
+
+		//Break out early if requested
+		if(state->exit)
+			break;
+	}
+
+	//If there's events in the queue still, it's because we're exiting, and we
+	//need to clean up.
+	while(aqueue_dequeue(events, (void**)&event)) {
+		free(event);
+	}
+	aqueue_free(events);
+
 	return !state->exit;
 }

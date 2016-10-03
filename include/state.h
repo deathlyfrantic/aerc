@@ -4,6 +4,7 @@
 #include <pthread.h>
 #include <time.h>
 
+#include "bind.h"
 #include "util/list.h"
 #include "worker.h"
 
@@ -40,10 +41,12 @@ struct aerc_state {
 	size_t selected_account;
 	list_t *accounts;
 	bool exit;
+	bool rerender;
 	struct {
 		char *text;
 		size_t length, index, scroll;
 	} command;
+	struct bind *binds;
 };
 
 extern struct aerc_state *state;

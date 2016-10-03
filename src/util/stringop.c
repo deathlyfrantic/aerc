@@ -49,6 +49,14 @@ void strip_quotes(char *str) {
 	*end = '\0';
 }
 
+int is_prefix_of(const char* prefix, const char* str) {
+	while(*prefix) {
+		if(*prefix++ != *str++)
+			return 0;
+	}
+	return 1;
+}
+
 list_t *split_string(const char *str, const char *delims) {
 	/*
 	 * Splits up a string at each delimiter, and returns a list_t with the
@@ -170,6 +178,10 @@ char *join_list(list_t *list, char *separator) {
 
 	for (size_t i = 0; i < list->length; i++) {
 		len += strlen(list->items[i]);
+	}
+
+	if(len == 0) {
+		return strdup("");
 	}
 
 	char *res = malloc(len);
