@@ -411,10 +411,38 @@ char* bind_translate_key_event(struct tb_event* event)
 
 struct tb_event* bind_translate_key_name(const char* key)
 {
+	int meta = 0;
+	//Check for 'Meta+' prefix
+	if(is_prefix_of("Meta+", key)) {
+		meta = 1;
+		key += strlen("Meta+");
+	}
+
+
+	//Check if we've got 'Meta+' and a regular keypress
+	if(meta == 1) {
+		//Alias Eq and Space
+		if(strcmp(key, "Eq") == 0) {
+			key = "=";
+		} else if(strcmp(key, "Space") == 0) {
+			key = " ";
+		}
+
+		//If we've only got a single character - it was a regular keypress
+		if(strlen(key) == 1) {
+			struct tb_event* e = calloc(1, sizeof(struct tb_event));
+			e->type = TB_EVENT_KEY;
+			e->mod = TB_MOD_ALT; //We're always 'meta' at this point
+			e->ch = key[0];
+			return e;
+		}
+	}
+
 	for(size_t i = 0; i < sizeof key_name_pairs / sizeof *key_name_pairs; ++i) {
 		if(strcmp(key_name_pairs[i].name, key) == 0) {
 			struct tb_event* e = calloc(1, sizeof(struct tb_event));
 			e->type = TB_EVENT_KEY;
+			e->mod = meta ? TB_MOD_ALT : 0;
 			e->key = key_name_pairs[i].key;
 			return e;
 		}
