@@ -4,8 +4,7 @@
 #include "tests.h"
 #include "bind.h"
 
-static struct tb_event generate_event(int ch, int mod, int key)
-{
+static struct tb_event generate_event(int ch, int mod, int key) {
 	struct tb_event e;
 	memset(&e, 0, sizeof e);
 	e.ch = ch;
@@ -14,8 +13,7 @@ static struct tb_event generate_event(int ch, int mod, int key)
 	return e;
 }
 
-static void test_reject_invalid_command(void **state)
-{
+static void test_reject_invalid_command(void **state) {
 	struct bind bind;
 	init_bind(&bind);
 
@@ -24,12 +22,11 @@ static void test_reject_invalid_command(void **state)
 	destroy_bind(&bind);
 }
 
-static void test_reject_invalid_keys(void **state)
-{
+static void test_reject_invalid_keys(void **state) {
 	struct bind bind;
 	init_bind(&bind);
 
-	static const char* keys[] = {
+	static const char *keys[] = {
 		"Ctrl+=",
 		"foobar",
 		"=",
@@ -39,18 +36,18 @@ static void test_reject_invalid_keys(void **state)
 		"Ctrl+Ctrl+x",
 	};
 
-	for(size_t i = 0; i < sizeof keys / sizeof keys[0]; ++i)
+	for (size_t i = 0; i < sizeof keys / sizeof keys[0]; ++i) {
 		assert_int_equal(BIND_INVALID_KEYS, bind_add(&bind, keys[i], "command"));
+	}
 
 	destroy_bind(&bind);
 }
 
-static void test_accept_valid_keys(void **state)
-{
+static void test_accept_valid_keys(void **state) {
 	struct bind bind;
 	init_bind(&bind);
 
-	static const char* keys[] = {
+	static const char *keys[] = {
 		"Ctrl+q",
 		"Ctrl+E",
 		"Meta+!",
@@ -69,14 +66,14 @@ static void test_accept_valid_keys(void **state)
 		"Shift+Left",
 	};
 
-	for(size_t i = 0; i < sizeof keys / sizeof keys[0]; ++i)
+	for (size_t i = 0; i < sizeof keys / sizeof keys[0]; ++i) {
 		assert_int_equal(BIND_SUCCESS, bind_add(&bind, keys[i], "command"));
+	}
 
 	destroy_bind(&bind);
 }
 
-static void test_reject_conflicting_keys(void **state)
-{
+static void test_reject_conflicting_keys(void **state) {
 	struct bind bind;
 	init_bind(&bind);
 
@@ -91,10 +88,9 @@ static void test_reject_conflicting_keys(void **state)
 	destroy_bind(&bind);
 }
 
-static void test_translate_key_event(void **state)
-{
+static void test_translate_key_event(void **state) {
 	struct {
-		const char* str;
+		const char *str;
 		char ch;
 		int mod;
 		int key;
@@ -115,16 +111,15 @@ static void test_translate_key_event(void **state)
 	memset(&e, 0, sizeof e);
 	for(size_t i = 0; i < sizeof pairs / sizeof pairs[0]; ++i) {
 		e = generate_event(pairs[i].ch, pairs[i].mod, pairs[i].key);
-		char* str = bind_translate_key_event(&e);
+		char *str = bind_translate_key_event(&e);
 		assert_string_equal(str, pairs[i].str);
 		free(str);
 	}
 }
 
-static void test_translate_key_name(void **state)
-{
+static void test_translate_key_name(void **state) {
 	struct {
-		const char* str;
+		const char *str;
 		char ch;
 		int mod;
 		int key;
@@ -151,8 +146,7 @@ static void test_translate_key_name(void **state)
 	}
 }
 
-static void test_get_input_buffer(void **state)
-{
+static void test_get_input_buffer(void **state) {
 	struct bind bind;
 	init_bind(&bind);
 
@@ -165,15 +159,14 @@ static void test_get_input_buffer(void **state)
 	e = generate_event('b', 0, 0);
 	bind_handle_key_event(&bind, &e);
 
-	char* input = bind_input_buffer(&bind);
+	char *input = bind_input_buffer(&bind);
 	assert_string_equal("a b", input);
 	free(input);
 
 	destroy_bind(&bind);
 }
 
-static void test_remember_binds(void **state)
-{
+static void test_remember_binds(void **state) {
 	struct bind bind;
 	init_bind(&bind);
 

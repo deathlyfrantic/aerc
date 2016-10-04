@@ -49,10 +49,11 @@ void strip_quotes(char *str) {
 	*end = '\0';
 }
 
-int is_prefix_of(const char* prefix, const char* str) {
-	while(*prefix) {
-		if(*prefix++ != *str++)
+int is_prefix_of(const char *prefix, const char *str) {
+	while (*prefix) {
+		if (*prefix++ != *str++) {
 			return 0;
+		}
 	}
 	return 1;
 }

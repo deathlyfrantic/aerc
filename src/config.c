@@ -116,14 +116,13 @@ static int handle_config_option(void *_config, const char *section,
 
 	if (strcmp(section, "input") == 0) {
 		enum bind_result result = bind_add(state->binds, key, value);
-		// Check whether the bind worked
-		if(result == BIND_INVALID_KEYS) {
+		if (result == BIND_INVALID_KEYS) {
 			worker_log(L_ERROR, "Invalid bind key: %s", key);
 			return 0;
-		} else if(result == BIND_INVALID_COMMAND) {
+		} else if (result == BIND_INVALID_COMMAND) {
 			worker_log(L_ERROR, "Invalid bind command: %s", value);
 			return 0;
-		} else if(result == BIND_CONFLICTS) {
+		} else if (result == BIND_CONFLICTS) {
 			worker_log(L_ERROR, "Bind conflicts with an existing bind: %s", key);
 			return 0;
 		}

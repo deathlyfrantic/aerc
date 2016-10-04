@@ -181,25 +181,20 @@ static void command_delete_word() {
 }
 
 
-static struct tb_event *parse_input_command(const char* input, size_t* consumed)
-{
-	//Reached a null terminator?
-	if(!input[0]) {
+static struct tb_event *parse_input_command(const char *input, size_t *consumed) {
+	if (!input[0]) {
 		return NULL;
 	}
 
-	//Look for a special input sequence like <Enter>
-	if(input[0] == '<') {
-		//Hit a '<', look for a '>'
-		const char* term = strchr(input, '>');
-		if(term) {
-			//So we've got a <> pair. Let's check what's inside.
-			char* buf = strdup(input + 1);
+	if (input[0] == '<') {
+		const char *term = strchr(input, '>');
+		if (term) {
+			char *buf = strdup(input + 1);
 			*strchr(buf, '>') = 0;
 
 			struct tb_event *e = bind_translate_key_name(buf);
 			free(buf);
-			if(e) {
+			if (e) {
 				*consumed += 1 + term - input;
 				return e;
 			}
@@ -213,8 +208,7 @@ static struct tb_event *parse_input_command(const char* input, size_t* consumed)
 	return e;
 }
 
-static void process_event(struct tb_event* event, aqueue_t *event_queue)
-{
+static void process_event(struct tb_event* event, aqueue_t *event_queue) {
 	switch (event->type) {
 	case TB_EVENT_RESIZE:
 		need_rerender();
@@ -256,18 +250,16 @@ static void process_event(struct tb_event* event, aqueue_t *event_queue)
 				state->command.index = 0;
 				state->command.scroll = 0;
 			} else {
-				// Send input to bind mapper
 				const char* command = bind_handle_key_event(state->binds, event);
-				if(command) {
-					//Handle any generated input
+				if (command) {
 					size_t consumed = 0;
 					struct tb_event *new_event = NULL;
 
-					//Move through the command generating input events from it
-					while(1) {
+					while (1) {
 						new_event = parse_input_command(command + consumed, &consumed);
-						if(!new_event)
+						if (!new_event) {
 							break;
+						}
 						aqueue_enqueue(event_queue, new_event);
 					}
 				}
@@ -295,27 +287,26 @@ bool ui_tick() {
 
 	aqueue_t *events = aqueue_new();
 
-	while(1) {
+	while (1) {
 		struct tb_event *event = malloc(sizeof(struct tb_event));
-		//Fetch an event and enqueue it if we can
-		if(tb_peek_event(event, 0) < 1 || !aqueue_enqueue(events, event)) {
+		// Fetch an event and enqueue it if we can
+		if (tb_peek_event(event, 0) < 1 || !aqueue_enqueue(events, event)) {
 			free(event);
 			break;
 		}
 	}
 
 	struct tb_event *event;
-	while(aqueue_dequeue(events, (void**)&event)) {
+	while (aqueue_dequeue(events, (void**)&event)) {
 		process_event(event, events);
 		free(event);
-
-		//Break out early if requested
-		if(state->exit)
+		if(state->exit) {
 			break;
+		}
 	}
 
-	//If there's events in the queue still, it's because we're exiting, and we
-	//need to clean up.
+	// If there's events in the queue still, it's because we're exiting, and we
+	// need to clean up.
 	while(aqueue_dequeue(events, (void**)&event)) {
 		free(event);
 	}

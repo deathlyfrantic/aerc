@@ -138,8 +138,8 @@ void render_status(int x, int y, int width) {
 		return;
 	}
 
-	char* input = bind_input_buffer(state->binds);
-	if(strlen(input) > 0) {
+	char *input = bind_input_buffer(state->binds);
+	if (strlen(input) > 0) {
 		render_partial_input(x, y, width, input);
 		free(input);
 		return;

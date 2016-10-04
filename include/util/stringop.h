@@ -19,7 +19,7 @@ void strip_quotes(char *str);
 
 // strcmp that also handles null pointers.
 int lenient_strcmp(char *a, char *b);
-int is_prefix_of(const char* prefix, const char* str);
+int is_prefix_of(const char *prefix, const char *str);
 
 // Simply split a string with delims, free with `free_flat_list`
 list_t *split_string(const char *str, const char *delims);
