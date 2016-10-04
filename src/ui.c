@@ -268,11 +268,6 @@ static void process_event(struct tb_event* event, aqueue_t *event_queue) {
 		}
 		break;
 	}
-
-	if(state->rerender) {
-		state->rerender = false;
-		rerender();
-	}
 }
 
 bool ui_tick() {
@@ -311,6 +306,11 @@ bool ui_tick() {
 		free(event);
 	}
 	aqueue_free(events);
+
+	if (state->rerender) {
+		state->rerender = false;
+		rerender();
+	}
 
 	return !state->exit;
 }
