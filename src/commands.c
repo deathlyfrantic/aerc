@@ -34,16 +34,63 @@ static void handle_previous_message(int argc, char **argv) {
 	}
 }
 
-static void handle_next_mailbox(int argc, char **argv) {
+static void handle_next_account(int argc, char **argv) {
 	state->selected_account++;
 	state->selected_account %= state->accounts->length;
 	rerender();
 }
 
-static void handle_previous_mailbox(int argc, char **argv) {
+static void handle_previous_account(int argc, char **argv) {
 	state->selected_account--;
 	state->selected_account %= state->accounts->length;
 	rerender();
+}
+
+static void handle_next_folder(int argc, char **argv) {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	int i = -1;
+	worker_log(L_DEBUG, "Current: %s", account->selected);
+	for (i = 0; i < (int)account->mailboxes->length; ++i) {
+		struct aerc_mailbox *mbox = account->mailboxes->items[i];
+		if (!strcmp(mbox->name, account->selected)) {
+			break;
+		}
+	}
+	if (i == -1 || i == (int)account->mailboxes->length) {
+		return;
+	}
+	i++;
+	i %= account->mailboxes->length;
+	free(account->selected);
+	struct aerc_mailbox *next = account->mailboxes->items[i];
+	account->selected = strdup(next->name);
+	worker_post_action(account->worker.pipe, WORKER_SELECT_MAILBOX,
+			NULL, strdup(next->name));
+}
+
+static void handle_previous_folder(int argc, char **argv) {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	int i = -1;
+	for (i = 0; i < (int)account->mailboxes->length; ++i) {
+		struct aerc_mailbox *mbox = account->mailboxes->items[i];
+		if (!strcmp(mbox->name, account->selected)) {
+			break;
+		}
+	}
+	if (i == -1 || i == (int)account->mailboxes->length) {
+		return;
+	}
+	i--;
+	if (i == -1) {
+		i = account->mailboxes->length - 1;
+	}
+	free(account->selected);
+	struct aerc_mailbox *next = account->mailboxes->items[i];
+	account->selected = strdup(next->name);
+	worker_post_action(account->worker.pipe, WORKER_SELECT_MAILBOX,
+			NULL, strdup(next->name));
 }
 
 static void handle_cd(int argc, char **argv) {
@@ -77,9 +124,11 @@ struct cmd_handler cmd_handlers[] = {
 	{ "cd", handle_cd },
 	{ "delete-mailbox", handle_delete_mailbox },
 	{ "exit", handle_quit },
-	{ "next-mailbox", handle_next_mailbox },
+	{ "next-account", handle_next_account },
+	{ "next-folder", handle_next_folder },
 	{ "next-message", handle_next_message },
-	{ "previous-mailbox", handle_previous_mailbox },
+	{ "previous-account", handle_previous_account },
+	{ "previous-folder", handle_previous_folder },
 	{ "previous-message", handle_previous_message },
 	{ "q", handle_quit },
 	{ "quit", handle_quit }
