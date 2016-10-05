@@ -101,7 +101,7 @@ void handle_imap_fetch(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args) {
 	assert(args->type == IMAP_NUMBER);
 	char *selected = imap->selecting ? imap->selecting : imap->selected;
-	struct mailbox *mbox = get_mailbox(imap, imap->selected);
+	struct mailbox *mbox = get_mailbox(imap, selected);
 	int index = args->num - 1;
 	struct mailbox_message *msg = mbox->messages->items[index];
 	worker_log(L_DEBUG, "Received FETCH for message %d", index + 1);
