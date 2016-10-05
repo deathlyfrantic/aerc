@@ -114,7 +114,7 @@ static int handle_config_option(void *_config, const char *section,
 		return 1;
 	}
 
-	if (strcmp(section, "input") == 0) {
+	if (strcmp(section, "lbinds") == 0) {
 		enum bind_result result = bind_add(state->binds, key, value);
 		if (result == BIND_INVALID_KEYS) {
 			worker_log(L_ERROR, "Invalid bind key: %s", key);
