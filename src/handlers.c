@@ -65,6 +65,7 @@ void handle_worker_connect_error(struct account_state *account,
 
 void handle_worker_select_done(struct account_state *account,
 		struct worker_message *message) {
+	set_status(account, ACCOUNT_OKAY, "Connected.");
 	account->selected = strdup((char *)message->data);
 	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
 	rerender();

@@ -23,6 +23,12 @@ struct callback_data {
 static void imap_select_callback(struct imap_connection *imap,
 		void *data, enum imap_status status, const char *args) {
 	struct callback_data *cbdata = data;
+	if (status != STATUS_OK) {
+		if (cbdata->callback) {
+			cbdata->callback(imap, cbdata->data, status, args);
+		}
+		return;
+	}
 	struct mailbox *mbox = get_mailbox(imap, cbdata->mailbox);
 	if (imap->selected) {
 		free(imap->selected);
