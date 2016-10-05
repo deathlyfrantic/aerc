@@ -9,6 +9,7 @@
 #include "ui.h"
 #include "util/list.h"
 #include "worker.h"
+#include "log.h"
 
 static void clear_remaining(struct tb_cell *cell, int x, int y, int width, int height) {
 	cell->ch = ' ';
@@ -187,7 +188,7 @@ void render_item(int x, int y, int width, int height,
 		} else {
 			get_color("message-list-unselected", &cell);
 			if (!seen) {
-				get_color("message-list-unselcted-unread", &cell);
+				get_color("message-list-unselected-unread", &cell);
 			}
 		}
 		char date[64];

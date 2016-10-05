@@ -130,10 +130,12 @@ int main(int argc, char **argv) {
 	rerender();
 
 	while (1) {
+		bool sleep = true;
 		struct worker_message *msg;
 		for (size_t i = 0; i < state->accounts->length; ++i) {
 			struct account_state *account = state->accounts->items[i];
 			if (worker_get_message(account->worker.pipe, &msg)) {
+				sleep = false;
 				handle_worker_message(account, msg);
 				worker_message_free(msg);
 			}
@@ -143,8 +145,10 @@ int main(int argc, char **argv) {
 			break;
 		}
 
-		struct timespec spec = { 0, .5e+8 };
-		nanosleep(&spec, NULL);
+		if (sleep) {
+			struct timespec spec = { 0, .5e+8 };
+			nanosleep(&spec, NULL);
+		}
 	}
 
 	teardown_ui();

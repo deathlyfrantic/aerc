@@ -110,7 +110,7 @@ void imap_arg_free(imap_arg_t *args);
 
 bool imap_connect(struct imap_connection *imap, const struct uri *uri,
 		bool use_ssl, imap_callback_t callback, void *data);
-void imap_receive(struct imap_connection *imap);
+int imap_receive(struct imap_connection *imap);
 void imap_send(struct imap_connection *imap, imap_callback_t callback,
 		void *data, const char *fmt, ...);
 void imap_close(struct imap_connection *imap);

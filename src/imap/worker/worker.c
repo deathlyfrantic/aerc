@@ -129,6 +129,7 @@ void *imap_worker(void *_pipe) {
 	imap->events.message_updated = update_message;
 	worker_log(L_DEBUG, "Starting IMAP worker");
 	while (1) {
+		bool sleep = true;
 		/*
 		 * First, we check for any actions the main thread has requested us to
 		 * perform.
@@ -147,18 +148,23 @@ void *imap_worker(void *_pipe) {
 				handle_message(pipe, message);
 			}
 			worker_message_free(message);
+			sleep = false;
 		}
 		/* 
 		 * Then, we do the usual IMAP connection housekeeping, receiving new
 		 * messages and passing them along to various handlers.
 		 */
-		imap_receive(imap);
+		if (imap_receive(imap)) {
+			sleep = false;
+		}
 
 		/*
 		 * Finally, we sleep for a bit and then loop back around again.
 		 */
-		struct timespec spec = { 0, .5e+8 };
-		nanosleep(&spec, NULL);
+		if (sleep) {
+			struct timespec spec = { 0, .5e+8 };
+			nanosleep(&spec, NULL);
+		}
 	}
 	return NULL;
 }

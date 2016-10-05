@@ -149,7 +149,7 @@ void imap_send(struct imap_connection *imap, imap_callback_t callback,
 	free(tag);
 }
 
-void imap_receive(struct imap_connection *imap) {
+int imap_receive(struct imap_connection *imap) {
 	/*
 	 * This function will poll(3) for data waiting on the socket, then attempt
 	 * to receive it per the various modes the connection may be in.
@@ -218,8 +218,10 @@ void imap_receive(struct imap_connection *imap) {
 					memset(imap->line + imap->line_index, 0, imap->line_size - imap->line_index);
 				}
 			}
+			return amt;
 		}
 	}
+	return 0;
 }
 
 void handle_noop(struct imap_connection *imap, const char *token,
