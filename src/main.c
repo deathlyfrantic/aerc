@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
 			}
 		}
 
-		if (!ui_tick()) {
+		if (sleep && !ui_tick()) {
 			break;
 		}
 
