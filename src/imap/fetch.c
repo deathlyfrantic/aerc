@@ -25,7 +25,8 @@ void imap_fetch(struct imap_connection *imap, imap_callback_t callback,
 	// individually
 	bool seperate = false;
 
-	struct mailbox *mbox = get_mailbox(imap, imap->selected);
+	char *selected = imap->selecting ? imap->selecting : imap->selected;
+	struct mailbox *mbox = get_mailbox(imap, selected);
 	assert(min >= 1);
 	assert(max <= mbox->messages->length);
 	for (size_t i = min; i < max; ++i) {
@@ -99,6 +100,7 @@ static int handle_body(struct mailbox_message *msg, imap_arg_t *args) {
 void handle_imap_fetch(struct imap_connection *imap, const char *token,
 		const char *cmd, imap_arg_t *args) {
 	assert(args->type == IMAP_NUMBER);
+	char *selected = imap->selecting ? imap->selecting : imap->selected;
 	struct mailbox *mbox = get_mailbox(imap, imap->selected);
 	int index = args->num - 1;
 	struct mailbox_message *msg = mbox->messages->items[index];
