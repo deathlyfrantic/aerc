@@ -72,6 +72,11 @@ struct message_range {
 	int min, max;
 };
 
+struct aerc_message_update {
+	char *mailbox;
+	struct aerc_message *message;
+};
+
 struct aerc_message {
 	bool fetching, fetched, should_fetch;
 	int index;

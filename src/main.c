@@ -33,6 +33,8 @@ struct message_handler {
 struct message_handler message_handlers[] = {
 	{ WORKER_CONNECT_DONE, handle_worker_connect_done },
 	{ WORKER_CONNECT_ERROR, handle_worker_connect_error },
+	{ WORKER_SELECT_MAILBOX_DONE, handle_worker_select_done },
+	{ WORKER_SELECT_MAILBOX_ERROR, handle_worker_select_error },
 	{ WORKER_LIST_DONE, handle_worker_list_done },
 	{ WORKER_LIST_ERROR, handle_worker_list_error },
 #ifdef USE_OPENSSL

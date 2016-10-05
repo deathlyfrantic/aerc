@@ -8,6 +8,10 @@ void handle_worker_connect_done(struct account_state *account,
 		struct worker_message *message);
 void handle_worker_connect_error(struct account_state *account,
 		struct worker_message *message);
+void handle_worker_select_done(struct account_state *account,
+		struct worker_message *message);
+void handle_worker_select_error(struct account_state *account,
+		struct worker_message *message);
 void handle_worker_list_done(struct account_state *account,
 		struct worker_message *message);
 void handle_worker_list_error(struct account_state *account,

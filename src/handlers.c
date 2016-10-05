@@ -15,6 +15,43 @@
 #include "util/list.h"
 #include "worker.h"
 
+static void fetch_necessary(struct account_state *account,
+		struct aerc_mailbox *mbox) {
+	int min = -1, max = -1;
+	size_t i;
+	for (i = 0; i < mbox->messages->length; ++i) {
+		struct aerc_message *message = mbox->messages->items[i];
+		if (min == -1) {
+			if (message->should_fetch && !message->fetching) {
+				message->fetching = true;
+				min = i;
+			}
+		} else {
+			if (!message->should_fetch) {
+				max = i - 1;
+				struct message_range *range = malloc(
+						sizeof(struct message_range));
+				range->min = min + 1;
+				range->max = max + 1;
+				worker_log(L_DEBUG, "Fetching message range %d - %d",
+						range->min, range->max);
+				worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
+						NULL, range);
+				min = max = -1;
+			}
+		}
+	}
+	if (min != -1) {
+		max = i - 1;
+		struct message_range *range = malloc(sizeof(struct message_range));
+		range->min = min + 1;
+		range->max = max + 1;
+		worker_log(L_DEBUG, "Fetching message range %d - %d", range->min, range->max);
+		worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
+				NULL, range);
+	}
+}
+
 void handle_worker_connect_done(struct account_state *account,
 		struct worker_message *message) {
 	worker_post_action(account->worker.pipe, WORKER_LIST, NULL, NULL);
@@ -24,6 +61,19 @@ void handle_worker_connect_done(struct account_state *account,
 void handle_worker_connect_error(struct account_state *account,
 		struct worker_message *message) {
 	set_status(account, ACCOUNT_ERROR, (char *)message->data);
+}
+
+void handle_worker_select_done(struct account_state *account,
+		struct worker_message *message) {
+	account->selected = strdup((char *)message->data);
+	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
+	rerender();
+	fetch_necessary(account, mbox);
+}
+
+void handle_worker_select_error(struct account_state *account,
+		struct worker_message *message) {
+	set_status(account, ACCOUNT_ERROR, "Unable to select that mailbox.");
 }
 
 void handle_worker_list_done(struct account_state *account,
@@ -66,43 +116,6 @@ void handle_worker_connect_cert_check(struct account_state *account,
 	worker_post_action(account->worker.pipe, WORKER_CONNECT_CERT_OKAY,
 			message, NULL);
 #endif
-}
-
-static void fetch_necessary(struct account_state *account,
-		struct aerc_mailbox *mbox) {
-	int min = -1, max = -1;
-	size_t i;
-	for (i = 0; i < mbox->messages->length; ++i) {
-		struct aerc_message *message = mbox->messages->items[i];
-		if (min == -1) {
-			if (message->should_fetch && !message->fetching) {
-				message->fetching = true;
-				min = i;
-			}
-		} else {
-			if (!message->should_fetch) {
-				max = i - 1;
-				struct message_range *range = malloc(
-						sizeof(struct message_range));
-				range->min = min + 1;
-				range->max = max + 1;
-				worker_log(L_DEBUG, "Fetching message range %d - %d",
-						range->min, range->max);
-				worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
-						NULL, range);
-				min = max = -1;
-			}
-		}
-	}
-	if (min != -1) {
-		max = i - 1;
-		struct message_range *range = malloc(sizeof(struct message_range));
-		range->min = min + 1;
-		range->max = max + 1;
-		worker_log(L_DEBUG, "Fetching message range %d - %d", range->min, range->max);
-		worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
-				NULL, range);
-	}
 }
 
 void handle_worker_mailbox_updated(struct account_state *account,

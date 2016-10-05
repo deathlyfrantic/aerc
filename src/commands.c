@@ -62,9 +62,7 @@ static void handle_next_folder(int argc, char **argv) {
 	}
 	i++;
 	i %= account->mailboxes->length;
-	free(account->selected);
 	struct aerc_mailbox *next = account->mailboxes->items[i];
-	account->selected = strdup(next->name);
 	worker_post_action(account->worker.pipe, WORKER_SELECT_MAILBOX,
 			NULL, strdup(next->name));
 }
@@ -86,9 +84,7 @@ static void handle_previous_folder(int argc, char **argv) {
 	if (i == -1) {
 		i = account->mailboxes->length - 1;
 	}
-	free(account->selected);
 	struct aerc_mailbox *next = account->mailboxes->items[i];
-	account->selected = strdup(next->name);
 	worker_post_action(account->worker.pipe, WORKER_SELECT_MAILBOX,
 			NULL, strdup(next->name));
 }
@@ -96,12 +92,9 @@ static void handle_previous_folder(int argc, char **argv) {
 static void handle_cd(int argc, char **argv) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
-	free(account->selected);
 	char *joined = join_args(argv, argc);
-	account->selected = strdup(joined);
 	worker_post_action(account->worker.pipe, WORKER_SELECT_MAILBOX,
-			NULL, strdup(joined));
-	free(joined);
+			NULL, joined);
 }
 
 static void handle_delete_mailbox(int argc, char **argv) {

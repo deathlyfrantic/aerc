@@ -92,13 +92,12 @@ struct aerc_mailbox *serialize_mailbox(struct mailbox *source) {
 	return dest;
 }
 
-static void update_mailbox(struct imap_connection *imap) {
+static void update_mailbox(struct imap_connection *imap, struct mailbox *updated) {
 	/*
 	 * Some detail about the mailbox has changed. Re-serialize it and re-send it
 	 * to the main thread.
 	 */
-	struct aerc_mailbox *mbox = serialize_mailbox(
-			get_mailbox(imap, imap->selected));
+	struct aerc_mailbox *mbox = serialize_mailbox(updated);
 	struct worker_pipe *pipe = imap->data;
 	worker_post_message(pipe, WORKER_MAILBOX_UPDATED, NULL, mbox);
 }

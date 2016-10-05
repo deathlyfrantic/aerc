@@ -65,7 +65,7 @@ struct mailbox {
 
 struct imap_connection {
 	struct {
-		void (*mailbox_updated)(struct imap_connection *);
+		void (*mailbox_updated)(struct imap_connection *, struct mailbox *mbox);
 		void (*mailbox_deleted)(struct imap_connection *, const char *name);
 		void (*message_updated)(struct imap_connection *, struct mailbox_message *);
 	} events;
@@ -83,7 +83,7 @@ struct imap_connection {
 	struct imap_state *state;
 	struct uri *uri;
 	list_t *mailboxes;
-	char *selected;
+	char *selected, *selecting;
 };
 
 enum imap_type {
