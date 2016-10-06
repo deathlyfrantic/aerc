@@ -176,7 +176,7 @@ void render_item(int x, int y, int width, int height,
 	if (!message || !message->fetched) {
 		add_loading(x, y);
 		if (message) {
-			message->should_fetch = true;
+			request_fetch(message);
 		}
 	} else {
 		bool seen = get_message_flag(message, "\\Seen");
@@ -223,6 +223,8 @@ void render_items(int x, int y, int width, int height) {
 	for (int i = mailbox->messages->length - account->ui.list_offset - 1;
 			i >= 0 && y <= height;
 			--i, ++y) {
+		worker_log(L_DEBUG, "Rendering message %d of %zd at %d",
+				i, mailbox->messages->length, y);
 		struct aerc_message *message = mailbox->messages->items[i];
 		render_item(x, y, width, height, message, selected == i);
 	}

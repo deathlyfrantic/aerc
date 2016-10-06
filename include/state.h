@@ -29,12 +29,12 @@ struct account_state {
 	struct {
 		size_t selected_message;
 		size_t list_offset;
+		list_t *fetch_requests;
 	} ui;
 
 	char *name;
 	list_t *mailboxes;
 	char *selected;
-	int messages_pending[20];
 };
 
 struct aerc_state {
@@ -55,7 +55,7 @@ void set_status(struct account_state *account, enum account_status state,
 		const char *text);
 struct aerc_mailbox *get_aerc_mailbox(struct account_state *account,
 		const char *name);
-void free_aerc_mailbox(struct aerc_mailbox *mbox);
+void free_aerc_mailbox(struct aerc_mailbox *mbox, bool messages);
 void free_aerc_message(struct aerc_message *msg);
 const char *get_message_header(struct aerc_message *msg, char *key);
 bool get_message_flag(struct aerc_message *msg, char *flag);

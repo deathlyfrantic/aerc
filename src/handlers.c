@@ -15,43 +15,6 @@
 #include "util/list.h"
 #include "worker.h"
 
-static void fetch_necessary(struct account_state *account,
-		struct aerc_mailbox *mbox) {
-	int min = -1, max = -1;
-	size_t i;
-	for (i = 0; i < mbox->messages->length; ++i) {
-		struct aerc_message *message = mbox->messages->items[i];
-		if (min == -1) {
-			if (message->should_fetch && !message->fetching) {
-				message->fetching = true;
-				min = i;
-			}
-		} else {
-			if (!message->should_fetch) {
-				max = i - 1;
-				struct message_range *range = malloc(
-						sizeof(struct message_range));
-				range->min = min + 1;
-				range->max = max + 1;
-				worker_log(L_DEBUG, "Fetching message range %d - %d",
-						range->min, range->max);
-				worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
-						NULL, range);
-				min = max = -1;
-			}
-		}
-	}
-	if (min != -1) {
-		max = i - 1;
-		struct message_range *range = malloc(sizeof(struct message_range));
-		range->min = min + 1;
-		range->max = max + 1;
-		worker_log(L_DEBUG, "Fetching message range %d - %d", range->min, range->max);
-		worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES,
-				NULL, range);
-	}
-}
-
 void handle_worker_connect_done(struct account_state *account,
 		struct worker_message *message) {
 	worker_post_action(account->worker.pipe, WORKER_LIST, NULL, NULL);
@@ -68,9 +31,7 @@ void handle_worker_select_done(struct account_state *account,
 	set_status(account, ACCOUNT_OKAY, "Connected.");
 	account->ui.list_offset = 0;
 	account->selected = strdup((char *)message->data);
-	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
 	rerender();
-	fetch_necessary(account, mbox);
 }
 
 void handle_worker_select_error(struct account_state *account,
@@ -125,21 +86,25 @@ void handle_worker_mailbox_updated(struct account_state *account,
 	struct aerc_mailbox *new = message->data;
 	struct aerc_mailbox *old = NULL;
 
-	bool rerendered = false;
+	worker_log(L_DEBUG, "Mailbox updated");
 	for (size_t i = 0; i < account->mailboxes->length; ++i) {
 		old = account->mailboxes->items[i];
 		if (strcmp(old->name, new->name) == 0) {
+			if (old->messages && old->messages->length) {
+				for (size_t j = 0; j < new->messages->length; ++j) {
+					struct aerc_message *m = new->messages->items[j];
+					free_aerc_message(m);
+				}
+				list_free(new->messages);
+				new->messages = old->messages;
+			}
 			account->mailboxes->items[i] = new;
 			rerender();
-			rerendered = true;
 			break;
 		}
 	}
 
-	if (rerendered && new->selected) {
-		fetch_necessary(account, new);
-	}
-	free_aerc_mailbox(old);
+	free_aerc_mailbox(old, false);
 }
 
 void handle_worker_message_updated(struct account_state *account,
@@ -152,7 +117,6 @@ void handle_worker_message_updated(struct account_state *account,
 		if (old->index == new->index) {
 			free_aerc_message(mbox->messages->items[i]);
 			new->fetched = true;
-			new->should_fetch = false;
 			mbox->messages->items[i] = new;
 			rerender_item(i);
 		}
@@ -168,6 +132,6 @@ void handle_worker_mailbox_deleted(struct account_state *account,
 			list_del(account->mailboxes, i);
 		}
 	}
-	free_aerc_mailbox(mbox);
+	free_aerc_mailbox(mbox, true);
 	rerender();
 }

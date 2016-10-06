@@ -78,7 +78,7 @@ struct aerc_message_update {
 };
 
 struct aerc_message {
-	bool fetching, fetched, should_fetch;
+	bool fetching, fetched;
 	int index;
 	long uid;
 	list_t *flags, *headers;

@@ -17,6 +17,7 @@
 #include "render.h"
 #include "util/list.h"
 #include "util/stringop.h"
+#include "log.h"
 #include "ui.h"
 
 int frame = 0;
@@ -76,6 +77,62 @@ static void need_rerender() {
 	state->rerender = true;
 }
 
+void reset_fetches() {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	while (account->ui.fetch_requests->length) {
+		struct message_range *range = account->ui.fetch_requests->items[0];
+		free(range);
+		list_del(account->ui.fetch_requests, 0);
+	}
+}
+
+void request_fetch(struct aerc_message *message) {
+	if (message->fetching || message->fetched) {
+		return;
+	}
+	worker_log(L_DEBUG, "Requested fetch of %d", message->index);
+	message->fetching = true;
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	bool merged = false;
+	for (size_t i = 0; i < account->ui.fetch_requests->length; ++i) {
+		struct message_range *range = account->ui.fetch_requests->items[i];
+		if (range->min <= message->index && range->max >= message->index) {
+			return;
+		}
+		if (range->min - 1 == message->index) {
+			range->min--;
+			merged = true;
+			break;
+		}
+		if (range->max + 1 == message->index) {
+			range->max++;
+			merged = true;
+			break;
+		}
+	}
+	if (!merged) {
+		struct message_range *range = malloc(sizeof(struct message_range));
+		range->min = message->index;
+		range->max = message->index;
+		list_add(account->ui.fetch_requests, range);
+	}
+}
+
+void fetch_pending() {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	while (account->ui.fetch_requests->length) {
+		struct message_range *range = account->ui.fetch_requests->items[0];
+		range->max++;
+		range->min++;
+		worker_log(L_DEBUG, "Fetching message range %d - %d", range->min, range->max);
+		worker_post_action(account->worker.pipe, WORKER_FETCH_MESSAGES, NULL, range);
+		list_del(account->ui.fetch_requests, 0);
+	}
+}
+
 void rerender() {
 	free_flat_list(loading_indicators);
 	loading_indicators = create_list();
@@ -87,7 +144,9 @@ void rerender() {
 	render_account_bar(0, 0, width, folder_width);
 	render_folder_list(0, 1, folder_width, height);
 	render_status(folder_width, height - 1, width - folder_width);
+	reset_fetches();
 	render_items(folder_width, 1, width - folder_width, height - 2);
+	fetch_pending();
 
 	if (state->command.text) {
 		tb_set_cursor(folder_width + strlen(state->command.text) + 1, height - 1);
@@ -105,10 +164,10 @@ void rerender_item(size_t index) {
 	int folder_width = 20;
 	int width = tb_width(), height = tb_height();
 	int x = folder_width, y = mailbox->messages->length - account->ui.list_offset - index;
+	worker_log(L_DEBUG, "Rerendering item %zd at %d", index, y);
 	struct aerc_message *message = mailbox->messages->items[index];
 	if (!message) return;
 	size_t selected = mailbox->messages->length - account->ui.selected_message - 1;
-	// TODO: Consider scrolling
 	for (size_t i = 0; i < loading_indicators->length; ++i) {
 		struct loading_indicator *indic = loading_indicators->items[i];
 		if (indic->x == x && indic->y == y) {

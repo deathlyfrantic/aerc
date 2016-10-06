@@ -116,6 +116,7 @@ int main(int argc, char **argv) {
 		struct account_state *account = calloc(1, sizeof(struct account_state));
 		account->name = strdup(ac->name);
 		account->worker.pipe = worker_pipe_new();
+		account->ui.fetch_requests = create_list();
 		worker_post_action(account->worker.pipe, WORKER_CONNECT, NULL,
 				ac->source);
 		worker_post_action(account->worker.pipe, WORKER_CONFIGURE, NULL,
