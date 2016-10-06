@@ -290,6 +290,7 @@ static void process_event(struct tb_event* event, aqueue_t *event_queue) {
 		if (state->command.text) {
 			switch (event->key) {
 			case TB_KEY_ESC:
+			case TB_KEY_CTRL_C:
 				abort_command();
 				break;
 			case TB_KEY_BACKSPACE:
