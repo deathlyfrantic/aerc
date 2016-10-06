@@ -1,5 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
+#include <stdio.h>
+#include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
@@ -14,15 +16,25 @@
 #include "worker.h"
 
 void set_status(struct account_state *account, enum account_status state,
-		const char *text) {
+		const char *fmt, ...) {
 	free(account->status.text);
-	if (text == NULL) {
-		text = "Unknown error occured";
+	if (fmt == NULL) {
+		fmt = "Unknown error occured";
 	}
-	account->status.text = strdup(text);
+	va_list args;
+	va_start(args, fmt);
+	int len = vsnprintf(NULL, 0, fmt, args);
+	va_end(args);
+
+	char *buf = malloc(len + 1);
+	va_start(args, fmt);
+	vsnprintf(buf, len + 1, fmt, args);
+	va_end(args);
+
+	account->status.text = buf;
 	account->status.status = state;
 	clock_gettime(CLOCK_MONOTONIC, &account->status.since);
-	rerender(); // TODO: just rerender the status bar
+	request_rerender(); // TODO: just rerender the status bar
 }
 
 static int get_mbox_compare(const void *_mbox, const void *_name) {

@@ -29,25 +29,51 @@ static void handle_quit(int argc, char **argv) {
 	state->exit = true;
 }
 
-static void handle_next_message(int argc, char **argv) {
+static void handle_message_seek(char *cmd, int mul, int argc, char **argv) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
-	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
-	if (account->ui.selected_message + 1 < mbox->messages->length) {
-		++account->ui.selected_message;
-		scroll_selected_into_view();
-		request_rerender();
+	int amt = 1;
+	bool scroll = false;
+	if (argc > 0) {
+		if (strcmp(argv[0], "--scroll") == 0) {
+			scroll = true;
+			argv = &argv[1];
+			argc--;
+		}
+		char *end;
+		amt = strtol(argv[0], &end, 10);
+		if (end == argv[0]) {
+			set_status(account, ACCOUNT_ERROR, "Usage: %s [--scroll] [amount|%]", cmd);
+			return;
+		}
+		if (*end) {
+			if (end[0] == '%' && !end[1]) {
+				amt = state->panels.message_list.height * (amt / 100.0);
+			} else {
+				set_status(account, ACCOUNT_ERROR, "Usage: %s [--scroll] [amount|%]", cmd);
+				return;
+			}
+		}
 	}
+	amt *= mul;
+	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
+	int new = (int)account->ui.selected_message + amt;
+	if (new < 0) amt -= new;
+	if (new >= (int)mbox->messages->length) amt -= new - mbox->messages->length;
+	if (scroll) {
+		account->ui.list_offset += amt;
+	}
+	account->ui.selected_message += amt;
+	scroll_selected_into_view();
+	request_rerender();
+}
+
+static void handle_next_message(int argc, char **argv) {
+	handle_message_seek("next-message", 1, argc, argv);
 }
 
 static void handle_previous_message(int argc, char **argv) {
-	struct account_state *account =
-		state->accounts->items[state->selected_account];
-	if (account->ui.selected_message != 0) {
-		--account->ui.selected_message;
-		scroll_selected_into_view();
-		request_rerender();
-	}
+	handle_message_seek("previous-message", -1, argc, argv);
 }
 
 static void handle_next_account(int argc, char **argv) {

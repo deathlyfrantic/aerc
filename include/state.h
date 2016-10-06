@@ -1,6 +1,7 @@
 #ifndef STATE_H
 #define STATE_H
 
+#include <stdarg.h>
 #include <pthread.h>
 #include <time.h>
 
@@ -63,7 +64,7 @@ struct aerc_state {
 extern struct aerc_state *state;
 
 void set_status(struct account_state *account, enum account_status state,
-		const char *text);
+		const char *fmt, ...);
 struct aerc_mailbox *get_aerc_mailbox(struct account_state *account,
 		const char *name);
 void free_aerc_mailbox(struct aerc_mailbox *mbox, bool messages);
