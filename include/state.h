@@ -14,6 +14,10 @@ enum account_status {
 	ACCOUNT_ERROR
 };
 
+struct geometry {
+	int x, y, width, height;
+};
+
 struct account_state {
 	struct {
 		struct worker_pipe *pipe;
@@ -46,6 +50,13 @@ struct aerc_state {
 		char *text;
 		size_t length, index, scroll;
 	} command;
+	struct {
+		struct geometry client;
+		struct geometry account_tabs;
+		struct geometry sidebar;
+		struct geometry message_list;
+		struct geometry message_view;
+	} panels;
 	struct bind *binds;
 };
 

@@ -10,6 +10,20 @@
 #include "log.h"
 #include "ui.h"
 
+static void scroll_selected_into_view() {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	int relative = account->ui.selected_message - account->ui.list_offset;
+	int height = state->panels.message_list.height - 1;
+	if (relative >= height) {
+		account->ui.list_offset += relative - height;
+		request_rerender();
+	} else if (relative < 0) {
+		account->ui.list_offset += relative;
+		request_rerender();
+	}
+}
+
 static void handle_quit(int argc, char **argv) {
 	// TODO: We may occasionally want to confirm the user's choice here
 	state->exit = true;
@@ -21,6 +35,7 @@ static void handle_next_message(int argc, char **argv) {
 	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
 	if (account->ui.selected_message + 1 < mbox->messages->length) {
 		++account->ui.selected_message;
+		scroll_selected_into_view();
 		request_rerender();
 	}
 }
@@ -30,6 +45,7 @@ static void handle_previous_message(int argc, char **argv) {
 		state->accounts->items[state->selected_account];
 	if (account->ui.selected_message != 0) {
 		--account->ui.selected_message;
+		scroll_selected_into_view();
 		request_rerender();
 	}
 }

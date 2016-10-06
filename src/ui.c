@@ -141,12 +141,26 @@ void rerender() {
 	int width = tb_width(), height = tb_height();
 	int folder_width = 20;
 
+	struct geometry client = { .x=0, .y=0, .width=width, .height=height };
+	struct geometry account_tabs = { .x=0, .y=0, .width=width, .height=1 };
+	struct geometry sidebar = { .x=0, .y=1, .width=folder_width, .height=height-1 };
+	struct geometry message_list = {
+		.x = folder_width,
+		.y = 1,
+		.width = width - folder_width,
+		.height = height - 2
+	};
+	state->panels.client = client;
+	state->panels.account_tabs = account_tabs;
+	state->panels.sidebar = sidebar;
+	state->panels.message_list = message_list;
+
 	render_account_bar(0, 0, width, folder_width);
 	render_folder_list(0, 1, folder_width, height);
-	render_status(folder_width, height - 1, width - folder_width);
 	reset_fetches();
 	render_items(folder_width, 1, width - folder_width, height - 2);
 	fetch_pending();
+	render_status(folder_width, height - 1, width - folder_width);
 
 	if (state->command.text) {
 		tb_set_cursor(folder_width + strlen(state->command.text) + 1, height - 1);

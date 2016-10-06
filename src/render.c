@@ -171,6 +171,9 @@ void render_status(int x, int y, int width) {
 
 void render_item(int x, int y, int width, int height,
 		struct aerc_message *message, bool selected) {
+	if (y > height) {
+		return;
+	}
 	struct tb_cell cell;
 	get_color("message-list-unselected", &cell);
 	if (!message || !message->fetched) {
@@ -223,8 +226,8 @@ void render_items(int x, int y, int width, int height) {
 	for (int i = mailbox->messages->length - account->ui.list_offset - 1;
 			i >= 0 && y <= height;
 			--i, ++y) {
-		worker_log(L_DEBUG, "Rendering message %d of %zd at %d",
-				i, mailbox->messages->length, y);
+		worker_log(L_DEBUG, "Rendering message %d of %zd at %d (offs %zd)",
+				i, mailbox->messages->length, y, account->ui.list_offset);
 		struct aerc_message *message = mailbox->messages->items[i];
 		render_item(x, y, width, height, message, selected == i);
 	}
