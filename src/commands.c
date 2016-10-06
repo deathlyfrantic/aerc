@@ -21,7 +21,7 @@ static void handle_next_message(int argc, char **argv) {
 	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
 	if (account->ui.selected_message + 1 < mbox->messages->length) {
 		++account->ui.selected_message;
-		rerender();
+		request_rerender();
 	}
 }
 
@@ -30,20 +30,20 @@ static void handle_previous_message(int argc, char **argv) {
 		state->accounts->items[state->selected_account];
 	if (account->ui.selected_message != 0) {
 		--account->ui.selected_message;
-		rerender();
+		request_rerender();
 	}
 }
 
 static void handle_next_account(int argc, char **argv) {
 	state->selected_account++;
 	state->selected_account %= state->accounts->length;
-	rerender();
+	request_rerender();
 }
 
 static void handle_previous_account(int argc, char **argv) {
 	state->selected_account--;
 	state->selected_account %= state->accounts->length;
-	rerender();
+	request_rerender();
 }
 
 static void handle_next_folder(int argc, char **argv) {

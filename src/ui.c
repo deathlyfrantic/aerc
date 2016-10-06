@@ -73,7 +73,7 @@ int tb_printf(int x, int y, struct tb_cell *basis, const char *fmt, ...) {
 	return l;
 }
 
-static void need_rerender() {
+void request_rerender() {
 	state->rerender = true;
 }
 
@@ -208,13 +208,13 @@ static void command_input(uint16_t ch) {
 	}
 	memcpy(state->command.text + len, &ch, size);
 	state->command.text[len + size] = '\0';
-	need_rerender();
+	request_rerender();
 }
 
 static void abort_command() {
 	free(state->command.text);
 	state->command.text = NULL;
-	need_rerender();
+	request_rerender();
 }
 
 static void command_backspace() {
@@ -223,7 +223,7 @@ static void command_backspace() {
 		return;
 	}
 	state->command.text[len - 1] = '\0';
-	need_rerender();
+	request_rerender();
 }
 
 static void command_delete_word() {
@@ -236,7 +236,7 @@ static void command_delete_word() {
 	while (cmd != state->command.text && !isspace(*cmd)) --cmd;
 	if (cmd != state->command.text) ++cmd;
 	*cmd = '\0';
-	need_rerender();
+	request_rerender();
 }
 
 
@@ -270,7 +270,7 @@ static struct tb_event *parse_input_command(const char *input, size_t *consumed)
 static void process_event(struct tb_event* event, aqueue_t *event_queue) {
 	switch (event->type) {
 	case TB_EVENT_RESIZE:
-		need_rerender();
+		request_rerender();
 		break;
 	case TB_EVENT_KEY:
 		if (state->command.text) {
@@ -323,7 +323,7 @@ static void process_event(struct tb_event* event, aqueue_t *event_queue) {
 					}
 				}
 			}
-			need_rerender();
+			request_rerender();
 		}
 		break;
 	}
@@ -354,7 +354,7 @@ bool ui_tick() {
 	while (aqueue_dequeue(events, (void**)&event)) {
 		process_event(event, events);
 		free(event);
-		if(state->exit) {
+		if (state->exit) {
 			break;
 		}
 	}

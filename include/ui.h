@@ -7,6 +7,7 @@
 
 void init_ui();
 void teardown_ui();
+void request_rerender();
 void rerender();
 void rerender_item(size_t index);
 void request_fetch(struct aerc_message *message);
