@@ -19,6 +19,7 @@ struct bind {
 
 void init_bind(struct bind *bind);
 void destroy_bind(struct bind *bind);
+void add_default_bindings(struct bind *binds);
 
 //Bind the given key combination to the given command
 enum bind_result bind_add(struct bind *bind, const char *keys, const char *command);

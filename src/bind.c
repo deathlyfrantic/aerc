@@ -108,6 +108,30 @@ static const struct {
 	{"Ctrl+/", TB_KEY_CTRL_SLASH},
 };
 
+void add_default_bindings(struct bind *binds) {
+	bind_add(binds, "q", ":quit<Enter>");
+	bind_add(binds, "Ctrl+c", ":quit<Enter>");
+
+	bind_add(binds, "h", ":previous-mailbox<Enter>");
+	bind_add(binds, "Left", ":previous-mailbox<Enter>");
+
+	bind_add(binds, "j", ":next-message<Enter>");
+	bind_add(binds, "Down", ":next-message<Enter>");
+	bind_add(binds, "Ctrl+d", ":next-message --scroll 50%<Enter>");
+	bind_add(binds, "PageDown", ":next-message --scroll 100%<Enter>");
+
+	bind_add(binds, "k", ":previous-message<Enter>");
+	bind_add(binds, "Up", ":previous-message<Enter>");
+	bind_add(binds, "Ctrl+u", ":previous-message --scroll 50%<Enter>");
+	bind_add(binds, "PageUp", ":previous-message --scroll 100%<Enter>");
+
+	bind_add(binds, "l", ":next-mailbox<Enter>");
+	bind_add(binds, "Right", ":next-mailbox<Enter>");
+
+	bind_add(binds, "J", ":next-folder<Enter>");
+	bind_add(binds, "K", ":previous-folder<Enter>");
+}
+
 static void init_bind_node(struct bind_node *bn) {
 	bn->key = NULL;
 	bn->command = NULL;

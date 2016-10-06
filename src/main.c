@@ -65,16 +65,7 @@ static void init_state() {
 	state->accounts = create_list();
 	state->binds = malloc(sizeof(struct bind));
 	init_bind(state->binds);
-
-	//Hardcode some default binds for now
-	bind_add(state->binds, "q", ":quit<Enter>");
-	bind_add(state->binds, "Ctrl+c", ":quit<Enter>");
-	bind_add(state->binds, "h", ":previous-mailbox<Enter>");
-	bind_add(state->binds, "j", ":next-message<Enter>");
-	bind_add(state->binds, "k", ":previous-message<Enter>");
-	bind_add(state->binds, "l", ":next-mailbox<Enter>");
-	bind_add(state->binds, "J", ":next-folder<Enter>");
-	bind_add(state->binds, "K", ":previous-folder<Enter>");
+	add_default_bindings(state->binds);
 }
 
 static void cleanup_state() {
