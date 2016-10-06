@@ -130,6 +130,8 @@ void add_default_bindings(struct bind *binds) {
 
 	bind_add(binds, "J", ":next-folder<Enter>");
 	bind_add(binds, "K", ":previous-folder<Enter>");
+	bind_add(binds, "g", ":select-message 0<Enter>");
+	bind_add(binds, "G", ":select-message -1<Enter>");
 }
 
 static void init_bind_node(struct bind_node *bn) {

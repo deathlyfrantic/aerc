@@ -76,6 +76,32 @@ static void handle_previous_message(int argc, char **argv) {
 	handle_message_seek("previous-message", -1, argc, argv);
 }
 
+static void handle_select_message(int argc, char **argv) {
+	struct account_state *account =
+		state->accounts->items[state->selected_account];
+	if (argc != 1) {
+		set_status(account, ACCOUNT_ERROR, "Usage: select-message [n]");
+		return;
+	}
+	char *end;
+	int requested = strtol(argv[0], &end, 10);
+	if (end == argv[0] || *end) {
+		set_status(account, ACCOUNT_ERROR, "Usage: select-message [n]");
+		return;
+	}
+	struct aerc_mailbox *mbox = get_aerc_mailbox(account, account->selected);
+	if (requested < 0) {
+		requested = mbox->messages->length + requested;
+	}
+	if (requested > (int)mbox->messages->length) {
+		set_status(account, ACCOUNT_ERROR, "Requested message is out of range.");
+		return;
+	}
+	account->ui.selected_message = requested;
+	scroll_selected_into_view();
+	request_rerender();
+}
+
 static void handle_next_account(int argc, char **argv) {
 	state->selected_account++;
 	state->selected_account %= state->accounts->length;
@@ -166,7 +192,8 @@ struct cmd_handler cmd_handlers[] = {
 	{ "previous-folder", handle_previous_folder },
 	{ "previous-message", handle_previous_message },
 	{ "q", handle_quit },
-	{ "quit", handle_quit }
+	{ "quit", handle_quit },
+	{ "select-message", handle_select_message }
 };
 
 static int handler_compare(const void *_a, const void *_b) {
