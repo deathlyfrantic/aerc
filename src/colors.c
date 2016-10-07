@@ -7,6 +7,7 @@
 #include "colors.h"
 #include "util/stringop.h"
 #include "util/hashtable.h"
+#include "stdlib.h"
 
 hashtable_t *colors;
 
@@ -34,32 +35,43 @@ void colors_init() {
 	set_color("message-list-unselected-unread", "default:*default");
 }
 
+// default color names have to be decremeted one to
+// work in 256-color mode in termbox
 const struct {
 	const char *name;
 	uint16_t color;
 } color_names[] = {
 	{ "default", TB_DEFAULT },
-	{ "black", TB_BLACK },
-	{ "red", TB_RED },
-	{ "green", TB_GREEN },
-	{ "yellow", TB_YELLOW },
-	{ "blue", TB_BLUE },
-	{ "magenta", TB_MAGENTA },
-	{ "cyan", TB_CYAN },
-	{ "white", TB_WHITE }
+	{ "black", TB_BLACK - 1 },
+	{ "red", TB_RED - 1 },
+	{ "green", TB_GREEN - 1 },
+	{ "yellow", TB_YELLOW - 1 },
+	{ "blue", TB_BLUE - 1 },
+	{ "magenta", TB_MAGENTA - 1 },
+	{ "cyan", TB_CYAN - 1 },
+	{ "white", TB_WHITE - 1 }
 };
 
 static uint16_t match_color(const char *value) {
 	uint16_t mods = 0;
-	while (*value == '*' || *value == '_') {
+	while (*value == '*' || *value == '_' || *value == '^') {
 		if (*value == '*') {
 			mods |= TB_BOLD;
-		}
-		if (*value == '_') {
+		} else if (*value == '_') {
 			mods |= TB_UNDERLINE;
+		} else if (*value == '^') {
+			mods |= TB_REVERSE;
 		}
 		++value;
 	}
+
+	// check for integer color specification
+	char *endptr;
+	long color_num = strtol(value, &endptr, 10);
+	if (value != endptr && color_num < 256) {
+		return color_num | mods;
+	}
+
 	for (size_t i = 0;
 			i < sizeof(color_names) / (sizeof(void *) + sizeof(uint16_t));
 			++i) {

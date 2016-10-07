@@ -31,6 +31,7 @@ list_t *loading_indicators = NULL;
 void init_ui() {
 	tb_init();
 	tb_select_input_mode(TB_INPUT_ESC | TB_INPUT_MOUSE);
+	tb_select_output_mode(TB_OUTPUT_256);
 }
 
 void teardown_ui() {
