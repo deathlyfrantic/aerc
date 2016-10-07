@@ -139,7 +139,7 @@ void rerender() {
 
 	tb_clear();
 	int width = tb_width(), height = tb_height();
-	int folder_width = 20;
+	int folder_width = config->ui.sidebar_width;
 
 	struct geometry client = { .x=0, .y=0, .width=width, .height=height };
 	struct geometry account_tabs = { .x=0, .y=0, .width=width, .height=1 };
@@ -155,12 +155,14 @@ void rerender() {
 	state->panels.sidebar = sidebar;
 	state->panels.message_list = message_list;
 
-	render_account_bar(0, 0, width, folder_width);
-	render_folder_list(0, 1, folder_width, height);
+	render_account_bar(account_tabs);
+	render_folder_list(sidebar);
 	reset_fetches();
-	render_items(folder_width, 1, width - folder_width, height - 2);
+	render_items(message_list);
+
 	fetch_pending();
-	render_status(folder_width, height - 1, width - folder_width);
+	struct geometry status = { .x=folder_width, .y=height-1, .width=width-folder_width, .height=1 };
+	render_status(status);
 
 	if (state->command.text) {
 		tb_set_cursor(folder_width + strlen(state->command.text) + 1, height - 1);
@@ -174,42 +176,52 @@ void rerender_item(size_t index) {
 	struct account_state *account =
 		state->accounts->items[state->selected_account];
 	struct aerc_mailbox *mailbox = get_aerc_mailbox(account, account->selected);
-	if (index >= mailbox->messages->length) return;
-	int folder_width = 20;
-	int width = tb_width(), height = tb_height();
-	int x = folder_width, y = mailbox->messages->length - account->ui.list_offset - index;
-	worker_log(L_DEBUG, "Rerendering item %zd at %d", index, y);
+	if (index >= mailbox->messages->length) {
+		return;
+	}
+	int folder_width = config->ui.sidebar_width;
+	struct geometry geo = {
+		.width = tb_width(),
+		.height = tb_height(),
+		.x = folder_width,
+		.y = mailbox->messages->length - account->ui.list_offset - index
+	};
+	worker_log(L_DEBUG, "Rerendering item %zd at %d", index, geo.y);
 	struct aerc_message *message = mailbox->messages->items[index];
-	if (!message) return;
+	if (!message) {
+		return;
+	}
 	size_t selected = mailbox->messages->length - account->ui.selected_message - 1;
 	for (size_t i = 0; i < loading_indicators->length; ++i) {
 		struct loading_indicator *indic = loading_indicators->items[i];
-		if (indic->x == x && indic->y == y) {
+		if (indic->x == geo.x && indic->y == geo.y) {
 			list_del(loading_indicators, i);
 			break;
 		}
 	}
-	render_item(x, y, width - folder_width, height - 2, message, selected == index);
+	geo.width -= folder_width;
+	geo.height -= 2;
+	render_item(geo, message, selected == index);
 	tb_present();
 }
 
-static void render_loading(int x, int y) {
+static void render_loading(struct geometry geo) {
 	struct tb_cell cell;
 	if (config->ui.loading_frames->length == 0) {
 		return;
 	}
 	get_color("loading-indicator", &cell);
 	int f = frame / 8 % config->ui.loading_frames->length;
-	tb_printf(x, y, &cell, "%s   ",
+	tb_printf(geo.x, geo.y, &cell, "%s   ",
 			(const char *)config->ui.loading_frames->items[f]);
 }
 
-void add_loading(int x, int y) {
+void add_loading(struct geometry geo) {
 	struct loading_indicator *indic = calloc(1, sizeof(struct loading_indicator));
-	indic->x = x;
-	indic->y = y;
+	indic->x = geo.x;
+	indic->y = geo.y;
 	list_add(loading_indicators, indic);
-	render_loading(x, y);
+	render_loading(geo);
 }
 
 static void command_input(uint16_t ch) {
@@ -345,11 +357,14 @@ static void process_event(struct tb_event* event, aqueue_t *event_queue) {
 }
 
 bool ui_tick() {
+	struct geometry geo;
 	if (loading_indicators->length > 1) {
 		frame++;
 		for (size_t i = 0; i < loading_indicators->length; ++i) {
 			struct loading_indicator *indic = loading_indicators->items[i];
-			render_loading(indic->x, indic->y);
+			geo.x = indic->x;
+			geo.y = indic->y;
+			render_loading(geo);
 		}
 		tb_present();
 	}

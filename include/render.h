@@ -1,11 +1,12 @@
 #ifndef _RENDER_H
 #define _RENDER_H
 
-void render_account_bar(int x, int y, int width, int folder_width);
-void render_folder_list(int x, int y, int width, int height);
-void render_status(int x, int y, int width);
-void render_items(int x, int y, int width, int height);
-void render_item(int x, int y, int width, int height,
-		struct aerc_message *message, bool selected);
+#include "state.h"
+
+void render_account_bar(struct geometry geo);
+void render_folder_list(struct geometry geo);
+void render_status(struct geometry geo);
+void render_items(struct geometry geo);
+void render_item(struct geometry geo, struct aerc_message *message, bool selected);
 
 #endif
