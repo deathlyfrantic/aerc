@@ -12,7 +12,7 @@ hashtable_t *colors;
 
 void colors_init() {
 	colors = create_hashtable(50, hash_string);
-	
+
 	set_color("borders", "white:black");
 	set_color("loading-indicator", "default:default");
 
@@ -29,7 +29,7 @@ void colors_init() {
 	set_color("ex-line", "default:default");
 
 	set_color("message-list-selected", "white:black");
-	set_color("message-list-unselcted", "default:default");
+	set_color("message-list-unselected", "default:default");
 	set_color("message-list-selected-unread", "white:_black");
 	set_color("message-list-unselected-unread", "default:*default");
 }
